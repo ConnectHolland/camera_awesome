@@ -61,6 +61,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     /**
      * captureSize size of photo to use (must be in the available set of size) use CameraSetup to get all
+     *
      * @param width
      * @param height
      */
@@ -81,9 +82,10 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     /**
      * Takes a picture from the current device
-     * @param cameraDevice the cameraDevice that
-     * @param filePath the path where to save the picture
-     * @param orientation orientation to use to save the image
+     *
+     * @param cameraDevice     the cameraDevice that
+     * @param filePath         the path where to save the picture
+     * @param orientation      orientation to use to save the image
      * @param onResultListener fires on success / failure
      * @throws CameraAccessException if camera is not available
      */
@@ -95,11 +97,11 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
             Log.e(TAG, "takePicture : PATH NOT FOUND");
             return;
         }
-        if(size == null) {
+        if (size == null) {
             Log.e(TAG, "takePicture : NO SIZE SET");
             return;
         }
-        if(mCameraSession.getCaptureSession() == null) {
+        if (mCameraSession.getCaptureSession() == null) {
             Log.e(TAG, "takePicture: mCameraSession.getCaptureSession() is null");
             return;
         }
@@ -115,7 +117,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
                 }
             }
         }, null);
-        if(autoFocus) {
+        if (autoFocus) {
             mCameraSession.setState(CameraPictureStates.STATE_REQUEST_FOCUS);
         } else {
             captureStillPicture();
@@ -123,7 +125,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     }
 
     public void setFlashMode(FlashMode flashMode) {
-        if(!mCameraCharacteristics.hasFlashAvailable()) {
+        if (!mCameraCharacteristics.hasFlashAvailable()) {
             return;
         }
         this.flashMode = flashMode;
@@ -138,7 +140,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     }
 
     public void dispose() {
-        if(pictureImageReader != null) {
+        if (pictureImageReader != null) {
             pictureImageReader.close();
             pictureImageReader = null;
         }
@@ -176,7 +178,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
         public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-            if(mCameraSession.getState() != null && mCameraSession.getState().equals(STATE_REQUEST_PHOTO_AFTER_FOCUS)) {
+            if (mCameraSession.getState() != null && mCameraSession.getState().equals(STATE_REQUEST_PHOTO_AFTER_FOCUS)) {
                 mCameraSession.setState(STATE_RELEASE_FOCUS);
             } else {
                 mCameraSession.setState(CameraPictureStates.STATE_RESTART_PREVIEW_REQUEST);
@@ -237,7 +239,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     @Override
     public void onStateChanged(CameraPictureStates state) {
-        if(state == null) {
+        if (state == null) {
             return;
         }
         try {

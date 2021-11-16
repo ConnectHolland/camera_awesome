@@ -47,7 +47,7 @@ public class CameraSession {
             @Override
             public void onConfigured(@NonNull CameraCaptureSession session) {
                 mCaptureSession = session;
-                if(onCaptureSessionListenerList != null) {
+                if (onCaptureSessionListenerList != null) {
                     for (OnCaptureSession onCaptureSession : onCaptureSessionListenerList) {
                         onCaptureSession.onConfigured(session);
                     }
@@ -56,7 +56,7 @@ public class CameraSession {
 
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                if(mCaptureSession != null) {
+                if (mCaptureSession != null) {
                     mCaptureSession.close();
                 }
                 for (OnCaptureSession onCaptureSession : onCaptureSessionListenerList) {
@@ -68,7 +68,7 @@ public class CameraSession {
 
     public void refresh() {
         // if session is active recreate session
-        if(mCaptureSession != null) {
+        if (mCaptureSession != null) {
             try {
                 mCaptureSession.abortCaptures();
                 this.createCameraCaptureSession(cameraDevice);

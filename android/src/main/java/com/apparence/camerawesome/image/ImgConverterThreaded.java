@@ -14,7 +14,7 @@ public class ImgConverterThreaded {
     private ImgConverter converter;
 
     public ImgConverterThreaded(ImgConverter converter) {
-        if(handlerThread != null) {
+        if (handlerThread != null) {
             handlerThread.quit();
             handlerThread = new HandlerThread("ImgConverterThreaded");
         }
@@ -24,7 +24,7 @@ public class ImgConverterThreaded {
 
     public void process(final ImageReader imageReader, final Consumer consumer) {
         Looper looper = handlerThread.getLooper();
-        if(looper == null) {
+        if (looper == null) {
             return;
         }
         Handler handler = new Handler(looper);

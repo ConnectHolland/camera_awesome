@@ -33,17 +33,25 @@ public class CameraCharacteristicsModel {
         return maxZoom;
     }
 
-    public Boolean hasFlashAvailable() { return flashAvailable; }
+    public Boolean hasFlashAvailable() {
+        return flashAvailable;
+    }
 
-    public boolean hasAutoFocus() { return hasAutoFocus; }
+    public boolean hasAutoFocus() {
+        return hasAutoFocus;
+    }
 
     public Rect getAvailablePreviewZone() {
         return availablePreviewZone;
     }
 
-    public Range<Integer> getAeCompensationRange() { return aeCompensationRange; }
+    public Range<Integer> getAeCompensationRange() {
+        return aeCompensationRange;
+    }
 
-    public Rational getAeCompensationRatio() { return aeCompensationRatio; }
+    public Rational getAeCompensationRatio() {
+        return aeCompensationRatio;
+    }
 
     public static class Builder {
 
@@ -59,7 +67,8 @@ public class CameraCharacteristicsModel {
 
         private Range<Integer> aeCompensationRange;
 
-        public Builder() {}
+        public Builder() {
+        }
 
         public Builder withMaxZoom(float maxZoom) {
             this.maxZoom = maxZoom;
@@ -98,7 +107,7 @@ public class CameraCharacteristicsModel {
 
         public CameraCharacteristicsModel build() {
             return new CameraCharacteristicsModel(
-              this.maxZoom, this.availablePreviewZone, this.hasAutoFocus, this.flashAvailable, this.aeCompensationRange, this.aeCompensationRatio
+                    this.maxZoom, this.availablePreviewZone, this.hasAutoFocus, this.flashAvailable, this.aeCompensationRange, this.aeCompensationRatio
             );
         }
     }

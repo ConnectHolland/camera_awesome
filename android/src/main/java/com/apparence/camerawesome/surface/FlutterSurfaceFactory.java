@@ -31,7 +31,7 @@ public class FlutterSurfaceFactory implements SurfaceFactory {
 
     @Override
     public long getSurfaceId() {
-        if(flutterTexture == null) {
+        if (flutterTexture == null) {
             throw new RuntimeException("flutterTexture is null");
         }
         return flutterTexture.id();

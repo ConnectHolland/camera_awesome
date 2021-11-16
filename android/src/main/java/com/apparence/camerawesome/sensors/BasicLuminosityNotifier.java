@@ -19,7 +19,7 @@ public class BasicLuminosityNotifier implements LuminosityNotifier, EventChannel
 
     @Override
     public void init(Context context) {
-        if(mSensorManager != null && mLightSensor != null)
+        if (mSensorManager != null && mLightSensor != null)
             return;
         mSensorManager = (SensorManager) context.getSystemService(SENSOR_SERVICE);
         mLightSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
@@ -30,13 +30,14 @@ public class BasicLuminosityNotifier implements LuminosityNotifier, EventChannel
     final SensorEventListener lightListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
-            if(notifyChannel != null && event != null && event.values != null &&  event.values.length > 0) {
+            if (notifyChannel != null && event != null && event.values != null && event.values.length > 0) {
                 notifyChannel.success(event.values[0]);
             }
         }
 
         @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) { }
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
     };
 
     @Override

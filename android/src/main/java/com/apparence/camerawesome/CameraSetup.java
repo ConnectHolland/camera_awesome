@@ -51,7 +51,7 @@ class CameraSetup {
 
     void chooseCamera(CameraSensor sensor) throws CameraAccessException {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-        if(mCameraManager == null) {
+        if (mCameraManager == null) {
             throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "cannot init CameraStateManager");
         }
         facingFront = sensor.equals(CameraSensor.FRONT);
@@ -69,23 +69,23 @@ class CameraSetup {
             }
             sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
             this.characteristicsModel = new CameraCharacteristicsModel.Builder()
-                .withMaxZoom(characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM))
-                .withAvailablePreviewZone(characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE))
-                .withAutoFocus(characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES))
-                .withFlash(characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE))
-                .withAeCompensationRange(characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE))
-                .withAeCompensationStep(characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP))
-                .build();
+                    .withMaxZoom(characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM))
+                    .withAvailablePreviewZone(characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE))
+                    .withAutoFocus(characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES))
+                    .withFlash(characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE))
+                    .withAeCompensationRange(characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE))
+                    .withAeCompensationStep(characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP))
+                    .build();
             mCameraId = cameraId;
             return;
         }
-        if(mCameraId == null) {
+        if (mCameraId == null) {
             throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "cannot find sensor");
         }
     }
 
     public void listenOrientation() {
-        if(orientationEventListener != null) {
+        if (orientationEventListener != null) {
             return;
         }
         final OrientationEventListener orientationEventListener = new OrientationEventListener(activity.getApplicationContext()) {
@@ -95,9 +95,9 @@ class CameraSetup {
                     return;
                 }
                 currentOrientation = (i + 45) / 90 * 90;
-                if(currentOrientation == 360)
+                if (currentOrientation == 360)
                     currentOrientation = 0;
-                if(sensorOrientationListener != null)
+                if (sensorOrientationListener != null)
                     sensorOrientationListener.notify(currentOrientation);
             }
         };
@@ -105,7 +105,7 @@ class CameraSetup {
     }
 
     Size[] getOutputSizes() throws CameraAccessException {
-        if(mCameraManager == null) {
+        if (mCameraManager == null) {
             throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "cannot init CameraStateManager");
         }
         CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(mCameraId);
@@ -115,8 +115,9 @@ class CameraSetup {
 
     /**
      * calculate orientation for exiv
-     * @see CaptureRequest#JPEG_ORIENTATION
+     *
      * @return
+     * @see CaptureRequest#JPEG_ORIENTATION
      */
     public int getJpegOrientation() {
         final int sensorOrientationOffset =
@@ -128,6 +129,7 @@ class CameraSetup {
 
     /**
      * Used to wrap CameraCharacteristics in a simpler model
+     *
      * @return CameraCharacteristics
      */
     public CameraCharacteristicsModel getCharacteristicsModel() {
