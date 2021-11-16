@@ -1,17 +1,23 @@
 package com.apparence.camerawesome;
 
+import static com.apparence.camerawesome.CameraPictureStates.STATE_RELEASE_FOCUS;
+import static com.apparence.camerawesome.CameraPictureStates.STATE_REQUEST_PHOTO_AFTER_FOCUS;
+
+import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaCodec;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.Log;
 import android.util.Size;
+import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -23,16 +29,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import static com.apparence.camerawesome.CameraPictureStates.STATE_PRECAPTURE;
-import static com.apparence.camerawesome.CameraPictureStates.STATE_READY_AFTER_FOCUS;
-import static com.apparence.camerawesome.CameraPictureStates.STATE_RELEASE_FOCUS;
-import static com.apparence.camerawesome.CameraPictureStates.STATE_REQUEST_PHOTO_AFTER_FOCUS;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class CameraPicture implements CameraSession.OnCaptureSession, CameraSettingsManager.CameraSettingsHandler {
 
     private static String TAG = CameraPicture.class.getName();
+
+    private static final int RECORDER_VIDEO_BITRATE = 10_000_000;
+    private static final long MIN_REQUIRED_RECORDING_TIME_MILLIS = 1000L;
 
     private final CameraSession mCameraSession;
 
@@ -48,11 +54,22 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     private CaptureRequest.Builder takePhotoRequestBuilder;
 
+    private CaptureRequest.Builder recordVideoRequestBuilder;
+
     private int orientation;
 
     private FlashMode flashMode;
 
-    public CameraPicture(CameraSession cameraSession, final CameraCharacteristicsModel cameraCharacteristics) {
+    private MediaRecorder recorder;
+
+    private long recordingStartMillis;
+
+    private Surface recorderSurface;
+
+    private Context context;
+
+    public CameraPicture(Context context, CameraSession cameraSession, final CameraCharacteristicsModel cameraCharacteristics) {
+        this.context = context;
         mCameraSession = cameraSession;
         mCameraCharacteristics = cameraCharacteristics;
         flashMode = FlashMode.NONE;
@@ -78,6 +95,73 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         setAutoFocus(this.autoFocus);
         pictureImageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
         mCameraSession.addPictureSurface(pictureImageReader.getSurface());
+
+        if (recorderSurface != null) {
+            recorderSurface.release();
+        }
+
+        // Get a persistent Surface from MediaCodec, don't forget to release when done
+        recorderSurface = MediaCodec.createPersistentInputSurface();
+
+        // Prepare and release a dummy MediaRecorder with our new surface
+        // Required to allocate an appropriately sized buffer before passing the Surface as the
+        // output target to the capture session.
+        MediaRecorder dummyRecorder = createRecorder(recorderSurface, createFile("mp4").getAbsolutePath());
+        try {
+            dummyRecorder.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Prepare media recorder failed: " + e.getMessage());
+        }
+        dummyRecorder.release();
+
+        mCameraSession.addRecorderSurface(recorderSurface);
+    }
+
+    private File createFile(String extension) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US);
+        return new File(context.getFilesDir(), "VID_${sdf.format(Date())}." + extension);
+    }
+
+    public void recordVideo(final CameraDevice cameraDevice, final String filePath, final int orientation) throws CameraAccessException, IOException {
+        // TODO: Prevents screen rotation during the video recording
+//        requireActivity().requestedOrientation =
+//                ActivityInfo.SCREEN_ORIENTATION_LOCKED
+
+        if (recordVideoRequestBuilder == null) {
+            recordVideoRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            recordVideoRequestBuilder.addTarget(pictureImageReader.getSurface());
+            recordVideoRequestBuilder.addTarget(recorderSurface);
+        }
+
+        // Start recording repeating requests, which will stop the ongoing preview
+        // repeating requests without having to explicitly call `session.stopRepeating`
+        mCameraSession.getCaptureSession().setRepeatingRequest(recordVideoRequestBuilder.build(), null, null);
+
+        if (recorder == null) {
+            recorder = createRecorder(recorderSurface, filePath);
+        }
+
+        recorder.setOrientationHint(orientation);
+        recorder.prepare();
+        recorder.start();
+
+        recordingStartMillis = System.currentTimeMillis();
+    }
+
+    public void stopRecording() {
+        // Requires recording of at least MIN_REQUIRED_RECORDING_TIME_MILLIS
+        long elapsedTimeMillis = System.currentTimeMillis() - recordingStartMillis;
+        if (elapsedTimeMillis < MIN_REQUIRED_RECORDING_TIME_MILLIS) {
+            try {
+                // TODO: Check if this is executed in the background.
+                Thread.sleep(MIN_REQUIRED_RECORDING_TIME_MILLIS - elapsedTimeMillis);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        recorder.stop();
     }
 
     /**
@@ -143,6 +227,12 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         if (pictureImageReader != null) {
             pictureImageReader.close();
             pictureImageReader = null;
+        }
+        if (recorder != null) {
+            recorder.release();
+        }
+        if (recorderSurface != null) {
+            recorderSurface.release();
         }
     }
 
@@ -221,6 +311,22 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
                 outputStream.getChannel().write(buffer);
             }
         }
+    }
+
+    private MediaRecorder createRecorder(Surface surface, String filePath) {
+        MediaRecorder mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setOutputFile(filePath);
+        mediaRecorder.setVideoEncodingBitRate(RECORDER_VIDEO_BITRATE);
+        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoSize(this.size.getWidth(), this.size.getHeight());
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setInputSurface(surface);
+
+        return mediaRecorder;
     }
 
     // --------------------------------------------------

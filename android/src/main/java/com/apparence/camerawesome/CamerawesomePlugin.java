@@ -19,6 +19,7 @@ import com.apparence.camerawesome.sensors.LuminosityNotifier;
 import com.apparence.camerawesome.sensors.SensorOrientationListener;
 import com.apparence.camerawesome.surface.FlutterSurfaceFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -171,6 +172,21 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             case "stop":
                 _handleStop(call, result);
                 break;
+            case "recordVideo":
+                _handleRecordVideo(call, result);
+                break;
+            case "stopRecordingVideo":
+                _handleStopRecordingVideo(call, result);
+                break;
+            case "setCaptureMode":
+                _handleSetCaptureMode(call, result);
+                break;
+            case "setRecordingAudioMode":
+                _handleSetRecordingAudioMode(call, result);
+                break;
+            case "refresh":
+                _handleRefresh(call, result);
+                break;
             default:
                 result.notImplemented();
                 break;
@@ -254,7 +270,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
                     streamImages);
             imageStreamChannel.setStreamHandler(mCameraPreview);
             // init picture recorder
-            mCameraPicture = new CameraPicture(mCameraSession, mCameraSetup.getCharacteristicsModel());
+            mCameraPicture = new CameraPicture(applicationContext, mCameraSession, mCameraSetup.getCharacteristicsModel());
             // init settings manager
             List<CameraSettingsHandler> handlers = new ArrayList<CameraSettingsHandler>();
             handlers.add(mCameraPreview);
@@ -408,7 +424,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             mCameraPicture.takePicture(
                     mCameraStateManager.getCameraDevice(),
                     path,
-                    mCameraSetup.getJpegOrientation(),
+                    mCameraSetup.getOrientation(),
                     createTakePhotoResultListener(result)
             );
         } catch (CameraAccessException e) {
@@ -457,6 +473,44 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         } catch (RuntimeException e) {
             result.error("NOT_FOCUSING", "not in focus", "");
         }
+    }
+
+    private void _handleRecordVideo(final MethodCall call, final Result result) {
+        if (!call.hasArgument("path")) {
+            result.error("PATH_NOT_SET", "a file path must be set", "");
+            return;
+        }
+        String path = call.argument("path");
+        try {
+            mCameraPicture.recordVideo(
+                    mCameraStateManager.getCameraDevice(),
+                    path,
+                    mCameraSetup.getOrientation()
+            );
+
+            result.success(null);
+        } catch (CameraAccessException | IOException e) {
+            result.error(e.getMessage(), "cannot open camera", "");
+        }
+    }
+
+    private void _handleStopRecordingVideo(final MethodCall call, final Result result) {
+        mCameraPicture.stopRecording();
+        result.success(null);
+    }
+
+    private void _handleSetCaptureMode(final MethodCall call, final Result result) {
+        // No-op
+        result.success(null);
+    }
+
+    private void _handleSetRecordingAudioMode(final MethodCall call, final Result result) {
+        // No-op
+        result.success(null);
+    }
+
+    private void _handleRefresh(final MethodCall call, final Result result) {
+        result.success(null);
     }
 
     private CameraPicture.OnImageResult createTakePhotoResultListener(final Result result) {

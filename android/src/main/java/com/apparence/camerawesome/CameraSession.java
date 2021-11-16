@@ -27,6 +27,8 @@ public class CameraSession {
 
     private static final String PHOTO_SURFACE_KEY = "PHOTO_SURFACE_KEY";
 
+    private static final String RECORDER_SURFACE_KEY = "RECORDER_SURFACE_KEY";
+
     private static final String PREVIEW_STREAM_SURFACE_KEY = "PREVIEW_STREAM_SURFACE_KEY";
 
     private CameraCaptureSession mCaptureSession;
@@ -92,6 +94,10 @@ public class CameraSession {
 
     public void addPictureSurface(Surface surface) {
         this.surfaces.put(PHOTO_SURFACE_KEY, surface);
+    }
+
+    public void addRecorderSurface(Surface surface) {
+        this.surfaces.put(RECORDER_SURFACE_KEY, surface);
     }
 
     public void addPreviewStreamSurface(Surface surface) {

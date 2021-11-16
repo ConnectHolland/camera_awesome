@@ -114,12 +114,12 @@ class CameraSetup {
     }
 
     /**
-     * calculate orientation for exiv
+     * calculate orientation for exif
      *
      * @return
      * @see CaptureRequest#JPEG_ORIENTATION
      */
-    public int getJpegOrientation() {
+    public int getOrientation() {
         final int sensorOrientationOffset =
                 (currentOrientation == ORIENTATION_UNKNOWN)
                         ? 0
