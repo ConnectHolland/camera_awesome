@@ -38,7 +38,6 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     private static String TAG = CameraPicture.class.getName();
 
     private static final int RECORDER_VIDEO_BITRATE = 10_000_000;
-    private static final long MIN_REQUIRED_RECORDING_TIME_MILLIS = 1000L;
 
     private final CameraSession mCameraSession;
 
@@ -62,14 +61,15 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     private MediaRecorder recorder;
 
-    private long recordingStartMillis;
-
     private Surface recorderSurface;
 
     private Context context;
 
-    public CameraPicture(Context context, CameraSession cameraSession, final CameraCharacteristicsModel cameraCharacteristics) {
+    private CameraPreview cameraPreview;
+
+    public CameraPicture(Context context, CameraPreview cameraPreview, CameraSession cameraSession, final CameraCharacteristicsModel cameraCharacteristics) {
         this.context = context;
+        this.cameraPreview = cameraPreview;
         mCameraSession = cameraSession;
         mCameraCharacteristics = cameraCharacteristics;
         flashMode = FlashMode.NONE;
@@ -124,13 +124,9 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     }
 
     public void recordVideo(final CameraDevice cameraDevice, final String filePath, final int orientation) throws CameraAccessException, IOException {
-        // TODO: Prevents screen rotation during the video recording
-//        requireActivity().requestedOrientation =
-//                ActivityInfo.SCREEN_ORIENTATION_LOCKED
-
         if (recordVideoRequestBuilder == null) {
             recordVideoRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-            recordVideoRequestBuilder.addTarget(pictureImageReader.getSurface());
+            recordVideoRequestBuilder.addTarget(cameraPreview.getPreviewSurface());
             recordVideoRequestBuilder.addTarget(recorderSurface);
         }
 
@@ -145,22 +141,9 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         recorder.setOrientationHint(orientation);
         recorder.prepare();
         recorder.start();
-
-        recordingStartMillis = System.currentTimeMillis();
     }
 
     public void stopRecording() {
-        // Requires recording of at least MIN_REQUIRED_RECORDING_TIME_MILLIS
-        long elapsedTimeMillis = System.currentTimeMillis() - recordingStartMillis;
-        if (elapsedTimeMillis < MIN_REQUIRED_RECORDING_TIME_MILLIS) {
-            try {
-                // TODO: Check if this is executed in the background.
-                Thread.sleep(MIN_REQUIRED_RECORDING_TIME_MILLIS - elapsedTimeMillis);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         recorder.stop();
     }
 

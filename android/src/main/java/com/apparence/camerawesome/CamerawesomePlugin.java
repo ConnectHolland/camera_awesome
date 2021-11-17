@@ -270,7 +270,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
                     streamImages);
             imageStreamChannel.setStreamHandler(mCameraPreview);
             // init picture recorder
-            mCameraPicture = new CameraPicture(applicationContext, mCameraSession, mCameraSetup.getCharacteristicsModel());
+            mCameraPicture = new CameraPicture(applicationContext, mCameraPreview, mCameraSession, mCameraSetup.getCharacteristicsModel());
             // init settings manager
             List<CameraSettingsHandler> handlers = new ArrayList<CameraSettingsHandler>();
             handlers.add(mCameraPreview);
