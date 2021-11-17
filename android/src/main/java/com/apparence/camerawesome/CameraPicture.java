@@ -29,8 +29,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class CameraPicture implements CameraSession.OnCaptureSession, CameraSettingsManager.CameraSettingsHandler {
@@ -106,21 +104,16 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         // Prepare and release a dummy MediaRecorder with our new surface
         // Required to allocate an appropriately sized buffer before passing the Surface as the
         // output target to the capture session.
-        MediaRecorder dummyRecorder = createRecorder(recorderSurface, createFile("mp4").getAbsolutePath());
+        MediaRecorder dummyRecorder = createRecorder(recorderSurface, createDummyFile("mp4").getAbsolutePath());
         try {
             dummyRecorder.prepare();
         } catch (IOException e) {
-            e.printStackTrace();
+            // Throw unchecked exception instead of checked.
             throw new RuntimeException("Prepare media recorder failed: " + e.getMessage());
         }
         dummyRecorder.release();
 
         mCameraSession.addRecorderSurface(recorderSurface);
-    }
-
-    private File createFile(String extension) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US);
-        return new File(context.getFilesDir(), "VID_${sdf.format(Date())}." + extension);
     }
 
     public void recordVideo(final CameraDevice cameraDevice, final String filePath, final int orientation) throws CameraAccessException, IOException {
@@ -216,6 +209,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         }
         if (recorderSurface != null) {
             recorderSurface.release();
+            recorderSurface = null;
         }
     }
 
@@ -294,6 +288,10 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
                 outputStream.getChannel().write(buffer);
             }
         }
+    }
+
+    private File createDummyFile(String extension) {
+        return new File(context.getFilesDir(), "dummy." + extension);
     }
 
     private MediaRecorder createRecorder(Surface surface, String filePath) {

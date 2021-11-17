@@ -500,16 +500,17 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
     }
 
     private void _handleSetCaptureMode(final MethodCall call, final Result result) {
-        // No-op
+        // No-op, only required by iOS.
         result.success(null);
     }
 
     private void _handleSetRecordingAudioMode(final MethodCall call, final Result result) {
-        // No-op
-        result.success(null);
+        // Currently not (yet) implemented for Android.
+        throw new UnsupportedOperationException();
     }
 
     private void _handleRefresh(final MethodCall call, final Result result) {
+        // No-op, only required by iOS.
         result.success(null);
     }
 
