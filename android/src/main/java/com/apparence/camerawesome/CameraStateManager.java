@@ -57,7 +57,7 @@ public class CameraStateManager extends CameraDevice.StateCallback {
     }
 
     public void startCamera(String cameraId) throws CameraManagerException {
-        if(cameraId == null) {
+        if (cameraId == null) {
             throw new RuntimeException("A cameraId must be selected");
         }
         this.cameraId = cameraId;
@@ -74,11 +74,11 @@ public class CameraStateManager extends CameraDevice.StateCallback {
         } catch (InterruptedException e) {
             Log.e(TAG, "INTERRUPTED: ", e);
             throw new CameraManagerException(CameraManagerException.Codes.INTERRUPTED, e);
-        } 
+        }
     }
 
     public void switchCamera(String cameraId, CameraCharacteristicsModel characteristicsModel) throws CameraManagerException {
-        if(this.cameraId.equals(cameraId)) {
+        if (this.cameraId.equals(cameraId)) {
             return;
         }
         stopCamera();
@@ -91,7 +91,7 @@ public class CameraStateManager extends CameraDevice.StateCallback {
 
     public void stopCamera() {
         try {
-            if(mCameraSession != null && mCameraSession.getCaptureSession() != null) {
+            if (mCameraSession != null && mCameraSession.getCaptureSession() != null) {
                 try {
                     mCameraSession.clearSurface();
                     mCameraSession.getCaptureSession().stopRepeating();
@@ -101,10 +101,10 @@ public class CameraStateManager extends CameraDevice.StateCallback {
                     Log.e(TAG, "close camera session: failed");
                 }
             }
-            if(mCameraPicture != null) {
+            if (mCameraPicture != null) {
                 mCameraPicture.dispose();
             }
-            if(mCameraPreview != null) {
+            if (mCameraPreview != null) {
                 mCameraPreview.dispose();
             }
             if (mCameraDevice != null) {
@@ -132,11 +132,11 @@ public class CameraStateManager extends CameraDevice.StateCallback {
         try {
             mCameraPicture.refresh();
             mCameraPreview.createCameraPreviewSession(mCameraDevice);
-            if(mOnCameraStateListener != null) {
+            if (mOnCameraStateListener != null) {
                 this.mOnCameraStateListener.onOpened();
             }
         } catch (CameraAccessException e) {
-            if(mOnCameraStateListener != null) {
+            if (mOnCameraStateListener != null) {
                 this.mOnCameraStateListener.onOpenError("CameraAccessException");
             }
         }
@@ -150,7 +150,7 @@ public class CameraStateManager extends CameraDevice.StateCallback {
 
     @Override
     public void onError(@NonNull CameraDevice camera, int error) {
-        if(this.opened) {
+        if (this.opened) {
             try {
                 releaseSemaphore();
                 mCameraPreview.dispose();
@@ -176,7 +176,7 @@ public class CameraStateManager extends CameraDevice.StateCallback {
     // -----------------------------------------
 
     private void startBackgroundThread() {
-        if(mBackgroundThread != null) {
+        if (mBackgroundThread != null) {
             return;
         }
         mBackgroundThread = new HandlerThread("CameraBackground");
@@ -185,7 +185,7 @@ public class CameraStateManager extends CameraDevice.StateCallback {
     }
 
     private void stopBackgroundThread() {
-        if(mBackgroundThread == null)
+        if (mBackgroundThread == null)
             return;
         mBackgroundThread.quitSafely();
         try {
@@ -198,7 +198,7 @@ public class CameraStateManager extends CameraDevice.StateCallback {
     }
 
     private void releaseSemaphore() {
-        if(this.mCameraOpenCloseLock != null)
+        if (this.mCameraOpenCloseLock != null)
             this.mCameraOpenCloseLock.release();
     }
 

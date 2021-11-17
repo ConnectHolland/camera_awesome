@@ -103,9 +103,9 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
         this.mainHandler = mainHandler;
         setAutoFocus(true);
     }
-    
+
     void createCameraPreviewSession(final CameraDevice cameraDevice) throws CameraAccessException {
-        if(previewSize == null)
+        if (previewSize == null)
             this.previewSize = new Size(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT);
         // create surface
         previewSurface = surfaceFactory.build(previewSize);
@@ -116,7 +116,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
         mCameraSession.setZoomArea(mInitialCropRegion);
         initPreviewRequest();
         // only start preview ImageReader if asked for it
-        if(streamPreviewImages) {
+        if (streamPreviewImages) {
             initPreviewStream();
         }
         mPreviewRequestBuilder.addTarget(previewSurface);
@@ -135,25 +135,26 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
         mCameraSession.setState(null);
         initPreviewRequest();
         try {
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureFocusedCallback , null);
-        } catch (CameraAccessException ignored) { }
+            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureFocusedCallback, null);
+        } catch (CameraAccessException ignored) {
+        }
         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
         refreshConfiguration();
     }
-    
+
     public CameraCaptureSession getCaptureSession() {
         return mCaptureSession;
     }
 
     public Long getFlutterTexture() {
-        if(this.surfaceFactory == null) {
+        if (this.surfaceFactory == null) {
             throw new RuntimeException("surface factory null");
         }
         return this.surfaceFactory.getSurfaceId();
     }
 
     public void dispose() {
-        if(mCaptureSession != null) {
+        if (mCaptureSession != null) {
             // release surface
             mCameraSession.clearSurface();
             previewSurface.release();
@@ -162,7 +163,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     }
 
     public void setPreviewSize(int width, int height) {
-        if(width > MAX_PREVIEW_WIDTH || height > MAX_PREVIEW_HEIGHT) {
+        if (width > MAX_PREVIEW_WIDTH || height > MAX_PREVIEW_HEIGHT) {
             this.previewSize = new Size(1920, 1080);
         } else {
             this.previewSize = new Size(width, height);
@@ -184,7 +185,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     }
 
     public void setFlashMode(FlashMode flashMode) {
-        if(!mCameraCharacteristics.hasFlashAvailable()) {
+        if (!mCameraCharacteristics.hasFlashAvailable()) {
             return;
         }
         this.flashMode = flashMode;
@@ -203,7 +204,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     // ------------------------------------------------------
 
     private void initPreviewRequest() {
-        if(mPreviewRequestBuilder == null) {
+        if (mPreviewRequestBuilder == null) {
             return;
         }
         mPreviewRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientation);
@@ -231,7 +232,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     }
 
     private void refreshConfiguration() {
-        if(mCaptureSession == null) {
+        if (mCaptureSession == null) {
             return;
         }
         try {
@@ -246,7 +247,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     private void updateZoom() {
         float maxZoom = this.mCameraCharacteristics.getMaxZoom();
         Rect currentPreviewArea = this.mCameraCharacteristics.getAvailablePreviewZone();
-        if(currentPreviewArea == null) {
+        if (currentPreviewArea == null) {
             return;
         }
         float scaledZoom = mZoom * (maxZoom - 1.0f) + 1.0f;
@@ -291,7 +292,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
 
     @Override
     public void onStateChanged(CameraPictureStates state) {
-        if(state == null)
+        if (state == null)
             return;
         switch (state) {
             case STATE_RELEASE_FOCUS:
@@ -316,7 +317,7 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     private void runPrecaptureSequence() {
         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
         try {
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureFocusedCallback , null);
+            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureFocusedCallback, null);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
         } catch (CameraAccessException e) {
             Log.e(TAG, "Failed to run precapture sequence.", e);
@@ -336,32 +337,32 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
     };
 
     private void processCapture(CaptureResult result) {
-        if(mCameraSession.getState() == null) {
+        if (mCameraSession.getState() == null) {
             return;
         }
         switch (mCameraSession.getState()) {
             case STATE_WAITING_LOCK:
                 Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
                 Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                if(afState == null) {
+                if (afState == null) {
                     return;
                 }
                 /// Time to start the capture
                 if (
                     // We have passive focus lock (some devices use passive)
-                    afState == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED ||
-                    // We have active focus lock
-                    afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
-                    // Passive focus is inactive but AE says we are ready to capture
-                    (afState == CaptureResult.CONTROL_AF_STATE_INACTIVE && (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED)) ||
-                    // Focus failed, take the picture anyways
-                    afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
-                        // CONTROL_AE_STATE can be null on some devices
-                        if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                            mCameraSession.setState(STATE_REQUEST_PHOTO_AFTER_FOCUS);
-                        } else {
-                            mCameraSession.setState(STATE_PRECAPTURE);
-                        }
+                        afState == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED ||
+                                // We have active focus lock
+                                afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                                // Passive focus is inactive but AE says we are ready to capture
+                                (afState == CaptureResult.CONTROL_AF_STATE_INACTIVE && (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED)) ||
+                                // Focus failed, take the picture anyways
+                                afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
+                    // CONTROL_AE_STATE can be null on some devices
+                    if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                        mCameraSession.setState(STATE_REQUEST_PHOTO_AFTER_FOCUS);
+                    } else {
+                        mCameraSession.setState(STATE_PRECAPTURE);
+                    }
                 }
                 break;
             case STATE_PRECAPTURE: {
@@ -396,14 +397,14 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
         pictureImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                if(previewStreamSink != null && mainHandler != null) {
+                if (previewStreamSink != null && mainHandler != null) {
                     imgConverterThread.process(reader, new ImgConverterThreaded.Consumer() {
                         @Override
                         public void process(final byte[] result) {
                             final Runnable myRunnable = new Runnable() {
                                 @Override
                                 public void run() {
-                                    if(result != null && result.length > 0
+                                    if (result != null && result.length > 0
                                             && previewStreamSink != null && mainHandler != null)
                                         previewStreamSink.success(result);
                                 }

@@ -8,6 +8,7 @@ public interface SurfaceFactory {
     /**
      * Creates a surfaceTexture used to create a Surface
      * Surface are used to show camera preview
+     *
      * @param previewSize
      * @return
      */

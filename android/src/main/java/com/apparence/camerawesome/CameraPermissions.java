@@ -22,7 +22,7 @@ public class CameraPermissions implements EventChannel.StreamHandler, PluginRegi
 
     private static final String TAG = CameraPermissions.class.getName();
 
-    private static  final String[] permissions = new String[]{ CAMERA, WRITE_EXTERNAL_STORAGE };
+    private static final String[] permissions = new String[]{CAMERA, WRITE_EXTERNAL_STORAGE};
 
     private static final int PERMISSIONS_MULTIPLE_REQUEST = 5;
 
@@ -32,12 +32,12 @@ public class CameraPermissions implements EventChannel.StreamHandler, PluginRegi
 
 
     public String[] checkPermissions(Activity activity) {
-        if(activity == null) {
+        if (activity == null) {
             throw new RuntimeException("NULL_ACTIVITY");
         }
         List<String> permissionsToAsk = new ArrayList<>();
-        for(String permission : permissions) {
-            if(ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
                 permissionsToAsk.add(permission);
             }
         }
@@ -47,7 +47,7 @@ public class CameraPermissions implements EventChannel.StreamHandler, PluginRegi
 
     public void checkAndRequestPermissions(Activity activity) {
         String[] permissionsToAsk = checkPermissions(activity);
-        if(permissionsToAsk.length > 0) {
+        if (permissionsToAsk.length > 0) {
             Log.d(TAG, "_checkAndRequestPermissions: " + String.join(",", permissionsToAsk));
             ActivityCompat.requestPermissions(
                     activity,
@@ -72,7 +72,7 @@ public class CameraPermissions implements EventChannel.StreamHandler, PluginRegi
 
     @Override
     public void onCancel(Object arguments) {
-        if(this.events != null) {
+        if (this.events != null) {
             this.events.endOfStream();
             this.events = null;
         }
@@ -85,13 +85,13 @@ public class CameraPermissions implements EventChannel.StreamHandler, PluginRegi
     @Override
     public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         permissionGranted = true;
-        for(int i=0; i < permissions.length; i++) {
-            if(grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+        for (int i = 0; i < permissions.length; i++) {
+            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                 permissionGranted = false;
                 break;
             }
         }
-        if(this.events != null) {
+        if (this.events != null) {
             Log.d(TAG, "_onRequestPermissionsResult: granted " + String.join(", ", permissions));
             this.events.success(permissionGranted);
         } else {

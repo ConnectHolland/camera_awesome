@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public
-class YuvToJpgConverter implements ImgConverter{
+class YuvToJpgConverter implements ImgConverter {
 
     @Override
     public byte[] process(ImageReader reader) {
@@ -29,13 +29,13 @@ class YuvToJpgConverter implements ImgConverter{
                 return data;
             } else if (image.getFormat() == ImageFormat.YUV_420_888) {
                 data = NV21toJPEG(
-                    YUV_420_888toI420SemiPlanar(
-                            planes[0].getBuffer(),
-                            planes[1].getBuffer(),
-                            planes[2].getBuffer(),
-                            image.getWidth(), image.getHeight(),
-                            false),
-                    image.getWidth(), image.getHeight(), 80);
+                        YUV_420_888toI420SemiPlanar(
+                                planes[0].getBuffer(),
+                                planes[1].getBuffer(),
+                                planes[2].getBuffer(),
+                                image.getWidth(), image.getHeight(),
+                                false),
+                        image.getWidth(), image.getHeight(), 80);
 
             }
             image.close();
@@ -65,14 +65,14 @@ class YuvToJpgConverter implements ImgConverter{
             vBuffer.get(nv, ySize, vSize);
             uBuffer.get(nv, ySize + vSize, uSize);
         } else {
-            uBuffer.get(nv, ySize , uSize);
+            uBuffer.get(nv, ySize, uSize);
             vBuffer.get(nv, ySize + uSize, vSize);
         }
         return nv;
     }
 
     public byte[] YUV_420_888toI420SemiPlanar(ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer,
-                                                     int width, int height, boolean deInterleaveUV) {
+                                              int width, int height, boolean deInterleaveUV) {
         byte[] data = YUV_420_888toNV(yBuffer, uBuffer, vBuffer, deInterleaveUV);
         int size = width * height;
         if (deInterleaveUV) {

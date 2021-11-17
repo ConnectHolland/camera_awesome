@@ -26,22 +26,22 @@ public class CameraSettingsManager {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void setManualBrightness(double value) {
-        if(value > 1 || value < 0) {
+        if (value > 1 || value < 0) {
             throw new IllegalArgumentException("Value for brightness compensation must be between 0 and 1");
         }
         int minCompensationRange = mCameraCharacteristics.getAeCompensationRange().getLower();
         int maxCompensationRange = mCameraCharacteristics.getAeCompensationRange().getUpper();
         double stepCompensation = mCameraCharacteristics.getAeCompensationRatio().doubleValue();
-        if(minCompensationRange != 0 && maxCompensationRange != 0 ) {
+        if (minCompensationRange != 0 && maxCompensationRange != 0) {
             cameraSettings.manualBrightness = (int) (minCompensationRange + (maxCompensationRange - minCompensationRange) * (value));
             refreshConfiguration();
         }
     }
 
     private void refreshConfiguration() {
-        if(cameraSettingsHandlers == null)
+        if (cameraSettingsHandlers == null)
             return;
-        for(CameraSettingsHandler handler: cameraSettingsHandlers) {
+        for (CameraSettingsHandler handler : cameraSettingsHandlers) {
             handler.refreshConfiguration(cameraSettings);
         }
     }
