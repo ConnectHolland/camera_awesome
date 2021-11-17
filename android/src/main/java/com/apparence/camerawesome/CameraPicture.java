@@ -94,12 +94,10 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         pictureImageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
         mCameraSession.addPictureSurface(pictureImageReader.getSurface());
 
-        if (recorderSurface != null) {
-            recorderSurface.release();
+        if (recorderSurface == null) {
+            // Get a persistent Surface from MediaCodec, don't forget to release when done
+            recorderSurface = MediaCodec.createPersistentInputSurface();
         }
-
-        // Get a persistent Surface from MediaCodec, don't forget to release when done
-        recorderSurface = MediaCodec.createPersistentInputSurface();
 
         // Prepare and release a dummy MediaRecorder with our new surface
         // Required to allocate an appropriately sized buffer before passing the Surface as the
