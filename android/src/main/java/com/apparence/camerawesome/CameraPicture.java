@@ -36,6 +36,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     private static String TAG = CameraPicture.class.getName();
 
     private static final int RECORDER_VIDEO_BITRATE = 10_000_000;
+    private static final int RECORDER_VIDEO_FRAME_RATE = 30;
 
     private final CameraSession mCameraSession;
 
@@ -99,9 +100,9 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
             recorderSurface = MediaCodec.createPersistentInputSurface();
         }
 
-        // Prepare and release a dummy MediaRecorder with our new surface
-        // Required to allocate an appropriately sized buffer before passing the Surface as the
-        // output target to the capture session.
+        // Prepare and release a dummy MediaRecorder with our surface. Required to allocate an
+        // appropriately sized buffer before passing the Surface as the output target to the capture
+        // session.
         MediaRecorder dummyRecorder = createRecorder(recorderSurface, createDummyFile("mp4").getAbsolutePath());
         try {
             dummyRecorder.prepare();
@@ -115,11 +116,9 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
     }
 
     public void recordVideo(final CameraDevice cameraDevice, final String filePath, final int orientation) throws CameraAccessException, IOException {
-        if (recordVideoRequestBuilder == null) {
-            recordVideoRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-            recordVideoRequestBuilder.addTarget(cameraPreview.getPreviewSurface());
-            recordVideoRequestBuilder.addTarget(recorderSurface);
-        }
+        CaptureRequest.Builder recordVideoRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+        recordVideoRequestBuilder.addTarget(cameraPreview.getPreviewSurface());
+        recordVideoRequestBuilder.addTarget(recorderSurface);
 
         // Start recording repeating requests, which will stop the ongoing preview
         // repeating requests without having to explicitly call `session.stopRepeating`
@@ -134,7 +133,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         recorder.start();
     }
 
-    public void stopRecording() {
+    public void stopRecording() throws IllegalStateException {
         recorder.stop();
     }
 
@@ -204,6 +203,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         }
         if (recorder != null) {
             recorder.release();
+            recorder = null;
         }
         if (recorderSurface != null) {
             recorderSurface.release();
@@ -299,7 +299,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setOutputFile(filePath);
         mediaRecorder.setVideoEncodingBitRate(RECORDER_VIDEO_BITRATE);
-        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoFrameRate(RECORDER_VIDEO_FRAME_RATE);
         mediaRecorder.setVideoSize(this.size.getWidth(), this.size.getHeight());
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);

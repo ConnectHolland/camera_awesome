@@ -495,8 +495,12 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
     }
 
     private void _handleStopRecordingVideo(final MethodCall call, final Result result) {
-        mCameraPicture.stopRecording();
-        result.success(null);
+        try {
+            mCameraPicture.stopRecording();
+            result.success(null);
+        } catch (IllegalStateException e) {
+            result.error(e.getMessage(), "cannot stop camera", "");
+        }
     }
 
     private void _handleSetCaptureMode(final MethodCall call, final Result result) {
