@@ -1,5 +1,9 @@
 package com.apparence.camerawesome;
 
+import static android.Manifest.permission.CAMERA;
+import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.util.Log;
@@ -8,21 +12,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry;
-
-import static android.Manifest.permission.CAMERA;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class CameraPermissions implements EventChannel.StreamHandler, PluginRegistry.RequestPermissionsResultListener {
 
     private static final String TAG = CameraPermissions.class.getName();
 
-    private static final String[] permissions = new String[]{CAMERA, WRITE_EXTERNAL_STORAGE};
+    private static final String[] permissions = new String[]{CAMERA, WRITE_EXTERNAL_STORAGE, RECORD_AUDIO};
 
     private static final int PERMISSIONS_MULTIPLE_REQUEST = 5;
 

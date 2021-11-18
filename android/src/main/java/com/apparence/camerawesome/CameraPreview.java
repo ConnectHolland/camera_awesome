@@ -146,6 +146,10 @@ public class CameraPreview implements CameraSession.OnCaptureSession, EventChann
         return mCaptureSession;
     }
 
+    public Surface getPreviewSurface() {
+        return previewSurface;
+    }
+
     public Long getFlutterTexture() {
         if (this.surfaceFactory == null) {
             throw new RuntimeException("surface factory null");
