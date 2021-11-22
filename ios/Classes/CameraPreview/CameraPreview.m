@@ -91,7 +91,8 @@
     [_captureConnection setVideoMirrored:(_cameraSensor == Back)];
     [_captureConnection setVideoOrientation:AVCaptureVideoOrientationPortrait];
     
-    [self setCameraPresset:CGSizeMake(0, 0)];
+    [self setCameraPreviewPresset:CGSizeMake(0, 0)];
+    [self setCameraVideoPresset:CGSizeMake(0, 0)];
 }
 
 - (void)dealloc {
@@ -102,7 +103,7 @@
 }
 
 /// Set camera preview size
-- (void)setCameraPresset:(CGSize)currentPreviewSize {
+- (void)setCameraPreviewPresset:(CGSize)currentPreviewSize {
     NSString *presetSelected;
     if (!CGSizeEqualToSize(CGSizeZero, currentPreviewSize)) {
         // Try to get the quality requested
@@ -113,7 +114,19 @@
     }
     [_captureSession setSessionPreset:presetSelected];
     _currentPresset = presetSelected;
-    
+}
+
+/// Set camera video size
+- (void)setCameraVideoPresset:(CGSize)currentPreviewSize {
+    NSString *presetSelected;
+    if (!CGSizeEqualToSize(CGSizeZero, currentPreviewSize)) {
+        // Try to get the quality requested
+        presetSelected = [CameraQualities selectVideoCapturePresset:currentPreviewSize session:_captureSession];
+    } else {
+        // Compute the best quality supported by the camera device
+        presetSelected = [CameraQualities selectVideoCapturePresset:_captureSession];
+    }
+
     // Get preview size according to presset selected
     _currentPreviewSize = [CameraQualities getSizeForPresset:presetSelected];
     [_videoController setPreviewSize:currentPreviewSize];
@@ -151,12 +164,17 @@
 
 /// Set preview size resolution
 - (void)setPreviewSize:(CGSize)previewSize {
+    [self setCameraPreviewPresset:previewSize];
+}
+
+/// Set video size resolution
+- (void)setVideoSize:(CGSize)previewSize {
     if (_videoController.isRecording) {
         _result([FlutterError errorWithCode:@"PREVIEW_SIZE" message:@"impossible to change preview size, video already recording" details:@""]);
         return;
     }
-    
-    [self setCameraPresset:previewSize];
+
+    [self setCameraVideoPresset:previewSize];
 }
 
 /// Start camera preview

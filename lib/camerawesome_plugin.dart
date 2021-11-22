@@ -5,37 +5,32 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-export 'camerapreview.dart';
-
-export 'picture_controller.dart';
-export 'video_controller.dart';
-
-import 'models/sensor_data.dart';
-import 'models/sensors.dart';
 import 'models/capture_modes.dart';
 import 'models/flashmodes.dart';
-export 'models/sensors.dart';
+import 'models/orientations.dart';
+import 'models/sensor_data.dart';
+import 'models/sensors.dart';
+
+export 'camerapreview.dart';
 export 'models/capture_modes.dart';
 export 'models/flashmodes.dart';
-import 'models/orientations.dart';
 export 'models/sensor_data.dart';
+export 'models/sensors.dart';
+export 'picture_controller.dart';
+export 'video_controller.dart';
 
 enum CameraState { STARTING, STARTED, STOPPING, STOPPED }
 
 class CamerawesomePlugin {
   static const MethodChannel _channel = MethodChannel('camerawesome');
 
-  static const EventChannel _orientationChannel =
-      EventChannel('camerawesome/orientation');
+  static const EventChannel _orientationChannel = EventChannel('camerawesome/orientation');
 
-  static const EventChannel _permissionsChannel =
-      EventChannel('camerawesome/permissions');
+  static const EventChannel _permissionsChannel = EventChannel('camerawesome/permissions');
 
-  static const EventChannel _imagesChannel =
-      EventChannel('camerawesome/images');
+  static const EventChannel _imagesChannel = EventChannel('camerawesome/images');
 
-  static const EventChannel _luminosityChannel =
-      EventChannel('camerawesome/luminosity');
+  static const EventChannel _luminosityChannel = EventChannel('camerawesome/luminosity');
 
   static Stream<CameraOrientations?>? _orientationStream;
 
@@ -47,20 +42,16 @@ class CamerawesomePlugin {
 
   static CameraState currentState = CameraState.STOPPED;
 
-  static Future<List<String>> checkAndroidPermissions() => _channel
-      .invokeMethod("checkPermissions")
-      .then((res) => res.cast<String>());
+  static Future<List<String>> checkAndroidPermissions() =>
+      _channel.invokeMethod("checkPermissions").then((res) => res.cast<String>());
 
-  static Future<bool?> checkiOSPermissions() =>
-      _channel.invokeMethod("checkPermissions");
+  static Future<bool?> checkiOSPermissions() => _channel.invokeMethod("checkPermissions");
 
   /// only available on Android
-  static Future<List<String>?> requestPermissions() =>
-      _channel.invokeMethod("requestPermissions");
+  static Future<List<String>?> requestPermissions() => _channel.invokeMethod("requestPermissions");
 
   static Future<bool> start() async {
-    if (currentState == CameraState.STARTED ||
-        currentState == CameraState.STARTING) {
+    if (currentState == CameraState.STARTED || currentState == CameraState.STARTING) {
       return true;
     }
     currentState = CameraState.STARTING;
@@ -70,8 +61,7 @@ class CamerawesomePlugin {
   }
 
   static Future<bool> stop() async {
-    if (currentState == CameraState.STOPPED ||
-        currentState == CameraState.STOPPING) {
+    if (currentState == CameraState.STOPPED || currentState == CameraState.STOPPING) {
       return true;
     }
     _orientationStream = null;
@@ -89,11 +79,8 @@ class CamerawesomePlugin {
 
   static Stream<CameraOrientations?> getNativeOrientation() {
     if (_orientationStream == null) {
-      _orientationStream = _orientationChannel
-          .receiveBroadcastStream()
-          .transform(
-              StreamTransformer<dynamic, CameraOrientations?>.fromHandlers(
-                  handleData: (data, sink) {
+      _orientationStream = _orientationChannel.receiveBroadcastStream().transform(
+          StreamTransformer<dynamic, CameraOrientations?>.fromHandlers(handleData: (data, sink) {
         CameraOrientations? newOrientation;
         switch (data) {
           case 'LANDSCAPE_LEFT':
@@ -120,8 +107,7 @@ class CamerawesomePlugin {
     if (_permissionsStream == null) {
       _permissionsStream = _permissionsChannel
           .receiveBroadcastStream()
-          .transform(StreamTransformer<dynamic, bool>.fromHandlers(
-              handleData: (data, sink) {
+          .transform(StreamTransformer<dynamic, bool>.fromHandlers(handleData: (data, sink) {
         sink.add(data);
       }));
     }
@@ -130,9 +116,9 @@ class CamerawesomePlugin {
 
   static Stream<Uint8List>? listenCameraImages() {
     if (_imagesStream == null) {
-      _imagesStream = _imagesChannel.receiveBroadcastStream().transform(
-          StreamTransformer<dynamic, Uint8List>.fromHandlers(
-              handleData: (data, sink) {
+      _imagesStream = _imagesChannel
+          .receiveBroadcastStream()
+          .transform(StreamTransformer<dynamic, Uint8List>.fromHandlers(handleData: (data, sink) {
         sink.add(data);
       }));
     }
@@ -153,8 +139,7 @@ class CamerawesomePlugin {
 
   static Future<List<Size>> getSizes() async {
     try {
-      final sizes =
-          await _channel.invokeMethod<List<dynamic>>("availableSizes");
+      final sizes = await _channel.invokeMethod<List<dynamic>>("availableSizes");
       final res = <Size>[];
       sizes?.forEach((el) {
         int width = el["width"];
@@ -185,8 +170,7 @@ class CamerawesomePlugin {
   /// android has a limits on preview size and fallback to 1920x1080 if preview is too big
   /// So to prevent having different ratio we get the real preview Size directly from nativ side
   static Future<Size> getEffectivPreviewSize() async {
-    final sizeMap = await _channel
-        .invokeMapMethod<String, dynamic>("getEffectivPreviewSize");
+    final sizeMap = await _channel.invokeMapMethod<String, dynamic>("getEffectivPreviewSize");
 
     final int width = sizeMap?["width"] ?? 0;
     final int height = sizeMap?["height"] ?? 0;
@@ -197,6 +181,13 @@ class CamerawesomePlugin {
   /// you can set a different size for preview and for photo
   static Future<void> setPhotoSize(int width, int height) {
     return _channel.invokeMethod<void>('setPhotoSize', <String, dynamic>{
+      'width': width,
+      'height': height,
+    });
+  }
+
+  static Future<void> setVideoSize(int width, int height) {
+    return _channel.invokeMethod<void>('setVideoSize', <String, dynamic>{
       'width': width,
       'height': height,
     });
@@ -228,8 +219,7 @@ class CamerawesomePlugin {
   static startAutoFocus() => _channel.invokeMethod("handleAutoFocus");
 
   /// calls zoom from Android / iOS --
-  static Future<void> setZoom(num zoom) =>
-      _channel.invokeMethod('setZoom', <String, dynamic>{
+  static Future<void> setZoom(num zoom) => _channel.invokeMethod('setZoom', <String, dynamic>{
         'zoom': zoom,
       });
 
@@ -270,8 +260,7 @@ class CamerawesomePlugin {
     if (_luminositySensorDataStream == null) {
       _luminositySensorDataStream = _luminosityChannel
           .receiveBroadcastStream()
-          .transform(StreamTransformer<dynamic, SensorData>.fromHandlers(
-              handleData: (data, sink) {
+          .transform(StreamTransformer<dynamic, SensorData>.fromHandlers(handleData: (data, sink) {
         sink.add(SensorData(data));
       }));
     }
@@ -288,11 +277,9 @@ class CamerawesomePlugin {
   static Future<bool?> checkPermissions() async {
     try {
       if (Platform.isAndroid) {
-        var missingPermissions =
-            await CamerawesomePlugin.checkAndroidPermissions();
+        var missingPermissions = await CamerawesomePlugin.checkAndroidPermissions();
         if (missingPermissions.length > 0) {
-          return CamerawesomePlugin.requestPermissions()
-              .then((value) => value == null);
+          return CamerawesomePlugin.requestPermissions().then((value) => value == null);
         } else {
           return Future.value(true);
         }

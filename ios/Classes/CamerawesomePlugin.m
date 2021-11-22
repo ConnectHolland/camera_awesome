@@ -127,6 +127,8 @@ FlutterEventSink imageStreamEventSink;
         [self _handleGetEffectivPreviewSize:call result:result];
     } else if ([@"setPhotoSize" isEqualToString:call.method]) {
         [self _handlePhotoSize:call result:result];
+    } else if ([@"setVideoSize" isEqualToString:call.method]) {
+        [self _handleVideoSize:call result:result];
     } else if ([@"takePhoto" isEqualToString:call.method]) {
         [self _handleTakePhoto:call result:result];
     } else if ([@"recordVideo" isEqualToString:call.method]) {
@@ -251,6 +253,25 @@ FlutterEventSink imageStreamEventSink;
     
     [self.camera setPreviewSize:CGSizeMake(width, height)];
     
+    result(nil);
+}
+
+- (void)_handleVideoSize:(FlutterMethodCall*)call result:(FlutterResult)result {
+    float width = [call.arguments[@"width"] floatValue];
+    float height = [call.arguments[@"height"] floatValue];
+
+    if (width <= 0 || height <= 0) {
+        result([FlutterError errorWithCode:@"NO_SIZE_SET" message:@"width and height must be set" details:nil]);
+        return;
+    }
+
+    if (self.camera == nil) {
+        result([FlutterError errorWithCode:@"CAMERA_MUST_BE_INIT" message:@"init must be call before start" details:nil]);
+        return;
+    }
+
+    [self.camera setVideoSize:CGSizeMake(width, height)];
+
     result(nil);
 }
 
