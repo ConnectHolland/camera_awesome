@@ -214,7 +214,8 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
 
     // Init orientation stream
     if (widget.onOrientationChanged != null) {
-      _orientationStreamSub = CamerawesomePlugin.getNativeOrientation().listen(widget.onOrientationChanged);
+      _orientationStreamSub =
+          CamerawesomePlugin.getNativeOrientation().listen(widget.onOrientationChanged);
     }
 
     // All events sink need to be done before camera init
@@ -291,7 +292,8 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
         child: Center(child: CircularProgressIndicator()),
       );
 
-  bool get hasInit => selectedPreviewSize!.value != null && camerasAvailableSizes.length > 0 && started;
+  bool get hasInit =>
+      selectedPreviewSize!.value != null && camerasAvailableSizes.length > 0 && started;
 
   /// inits the Flash mode switcher using [ValueNotifier]
   /// Each time user call to switch flashMode we send a call to iOS or Android Plugins
@@ -353,7 +355,8 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
       if (selectedAndroidPhotoSize!.value == null || !Platform.isAndroid) {
         return;
       }
-      await CamerawesomePlugin.setPhotoSize(selectedAndroidPhotoSize!.value!.width.toInt(), selectedAndroidPhotoSize!.value!.height.toInt());
+      await CamerawesomePlugin.setPhotoSize(selectedAndroidPhotoSize!.value!.width.toInt(),
+          selectedAndroidPhotoSize!.value!.height.toInt());
     });
   }
 
@@ -363,7 +366,8 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
         return;
       }
       selectedAndroidPhotoSize!.value = widget.photoSize.value;
-      await CamerawesomePlugin.setPreviewSize(widget.photoSize.value.width.toInt(), widget.photoSize.value.height.toInt());
+      await CamerawesomePlugin.setPreviewSize(
+          widget.photoSize.value.width.toInt(), widget.photoSize.value.height.toInt());
       var effectivPreviewSize = await CamerawesomePlugin.getEffectivPreviewSize();
       if (selectedPreviewSize != null) {
         // this future can take time and be called after we disposed
@@ -379,8 +383,9 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     if (widget.brightness == null) {
       return;
     }
-    _brightnessCorrectionDataSub =
-        brightnessCorrectionData.debounceTime(Duration(milliseconds: 500)).listen((value) => CamerawesomePlugin.setBrightness(value));
+    _brightnessCorrectionDataSub = brightnessCorrectionData
+        .debounceTime(Duration(milliseconds: 500))
+        .listen((value) => CamerawesomePlugin.setBrightness(value));
     widget.brightness!.addListener(() => brightnessCorrectionData.add(widget.brightness!.value));
   }
 
@@ -444,8 +449,12 @@ class _CameraPreviewWidget extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: ratio,
                 child: SizedBox(
-                  height: orientation == Orientation.portrait ? constraints.maxHeight : constraints.maxWidth,
-                  width: orientation == Orientation.portrait ? constraints.maxWidth : constraints.maxHeight,
+                  height: orientation == Orientation.portrait
+                      ? constraints.maxHeight
+                      : constraints.maxWidth,
+                  width: orientation == Orientation.portrait
+                      ? constraints.maxWidth
+                      : constraints.maxHeight,
                   child: testMode ? Container() : Texture(textureId: textureId!),
                 ),
               ),
@@ -467,8 +476,12 @@ class _CameraPreviewWidget extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: size!.height / size!.width,
               child: SizedBox(
-                height: orientation == Orientation.portrait ? constraints.maxHeight : constraints.maxWidth,
-                width: orientation == Orientation.portrait ? constraints.maxWidth : constraints.maxHeight,
+                height: orientation == Orientation.portrait
+                    ? constraints.maxHeight
+                    : constraints.maxWidth,
+                width: orientation == Orientation.portrait
+                    ? constraints.maxWidth
+                    : constraints.maxHeight,
                 child: testMode ? Container() : Texture(textureId: textureId!),
               ),
             ),
