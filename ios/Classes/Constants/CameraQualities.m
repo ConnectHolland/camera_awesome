@@ -9,7 +9,7 @@
 
 @implementation CameraQualities
 
-+ (NSString *)selectVideoCapturePresset:(CGSize)size session:(AVCaptureSession *)session {
++ (NSString *)selectCapturePresset:(CGSize)size session:(AVCaptureSession *)session {
     if (!CGSizeEqualToSize(CGSizeZero, size)) {
         NSString *bestPresset = [CameraQualities selectPresetForSize:size];
         if ([session canSetSessionPreset:bestPresset]) {
@@ -20,7 +20,7 @@
     return [self computeBestPressetWithSession:session];
 }
 
-+ (NSString *)selectVideoCapturePresset:(AVCaptureSession *)session {
++ (NSString *)selectCapturePresset:(AVCaptureSession *)session {
     return [self computeBestPressetWithSession:session];
 }
 

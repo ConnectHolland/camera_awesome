@@ -107,29 +107,31 @@
     NSString *presetSelected;
     if (!CGSizeEqualToSize(CGSizeZero, currentPreviewSize)) {
         // Try to get the quality requested
-        presetSelected = [CameraQualities selectVideoCapturePresset:currentPreviewSize session:_captureSession];
+        presetSelected = [CameraQualities selectCapturePresset:currentPreviewSize session:_captureSession];
     } else {
         // Compute the best quality supported by the camera device
-        presetSelected = [CameraQualities selectVideoCapturePresset:_captureSession];
+        presetSelected = [CameraQualities selectCapturePresset:_captureSession];
     }
+    
+    // Get preview size according to presset selected
+    _currentPreviewSize = [CameraQualities getSizeForPresset:presetSelected];
+    
     [_captureSession setSessionPreset:presetSelected];
     _currentPresset = presetSelected;
 }
 
 /// Set camera video size
-- (void)setCameraVideoPresset:(CGSize)currentPreviewSize {
+- (void)setCameraVideoPresset:(CGSize)requestedSize {
     NSString *presetSelected;
-    if (!CGSizeEqualToSize(CGSizeZero, currentPreviewSize)) {
+    if (!CGSizeEqualToSize(CGSizeZero, requestedSize)) {
         // Try to get the quality requested
-        presetSelected = [CameraQualities selectVideoCapturePresset:currentPreviewSize session:_captureSession];
+        presetSelected = [CameraQualities selectCapturePresset:requestedSize session:_captureSession];
     } else {
         // Compute the best quality supported by the camera device
-        presetSelected = [CameraQualities selectVideoCapturePresset:_captureSession];
+        presetSelected = [CameraQualities selectCapturePresset:_captureSession];
     }
 
-    // Get preview size according to presset selected
-    _currentPreviewSize = [CameraQualities getSizeForPresset:presetSelected];
-    [_videoController setPreviewSize:currentPreviewSize];
+    [_videoController setPreviewSize:requestedSize];
 }
 
 /// Get current video prewiew size
