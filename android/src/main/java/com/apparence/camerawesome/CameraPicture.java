@@ -144,9 +144,11 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         // repeating requests without having to explicitly call `session.stopRepeating`
         mCameraSession.getCaptureSession().setRepeatingRequest(recordVideoRequestBuilder.build(), null, null);
 
-        if (recorder == null) {
-            recorder = createRecorder(recorderSurface, filePath);
+
+        if (recorder != null) {
+            recorder.release();
         }
+        recorder = createRecorder(recorderSurface, filePath);
 
         recorder.setOrientationHint(orientation);
         recorder.prepare();
