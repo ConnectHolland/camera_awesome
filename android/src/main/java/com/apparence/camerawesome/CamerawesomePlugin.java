@@ -148,6 +148,9 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             case "setPhotoSize":
                 _handlePhotoSize(call, result);
                 break;
+            case "setVideoSize":
+                _handleVideoSize(call, result);
+                break;
             case "takePhoto":
                 _handleTakePhoto(call, result);
                 break;
@@ -361,7 +364,19 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         }
         int width = call.argument("width");
         int height = call.argument("height");
-        mCameraPicture.setSize(width, height);
+        mCameraPicture.setPhotoSize(width, height);
+        mCameraSession.refresh();
+        result.success(null);
+    }
+
+    private void _handleVideoSize(MethodCall call, Result result) {
+        if (!call.hasArgument("width") || !call.hasArgument("height")) {
+            result.error("NO_SIZE_SET", "width and height must be set", "");
+            return;
+        }
+        int width = call.argument("width");
+        int height = call.argument("height");
+        mCameraPicture.setVideoSize(width, height);
         mCameraSession.refresh();
         result.success(null);
     }
@@ -372,7 +387,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             Log.e(TAG, "_handleStart: must be init before this");
             return;
         }
-        if (mCameraPicture.getSize() == null) {
+        if (mCameraPicture.getPhotoSize() == null) {
             result.error("NO_PICTURE_SIZE", "", "");
             return;
         }

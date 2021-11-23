@@ -58,6 +58,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
                  videoRecordingEvent:(FlutterEventSink)videoRecordingEventSink
                     imageStreamEvent:(FlutterEventSink)imageStreamEventSink;
 - (void)setPreviewSize:(CGSize)previewSize;
+- (void)setVideoSize:(CGSize)previewSize;
 - (void)setFlashMode:(CameraFlashMode)flashMode;
 - (void)setCaptureMode:(CaptureModes)captureMode;
 - (void)setRecordingAudioMode:(bool)enableAudio;

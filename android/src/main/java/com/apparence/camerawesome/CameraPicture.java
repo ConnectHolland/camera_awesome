@@ -46,13 +46,13 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     private ImageReader pictureImageReader;
 
-    private Size size;
+    private Size photoSize;
+
+    private Size videoSize;
 
     private boolean autoFocus;
 
     private CaptureRequest.Builder takePhotoRequestBuilder;
-
-    private CaptureRequest.Builder recordVideoRequestBuilder;
 
     private int orientation;
 
@@ -81,41 +81,61 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
      * @param width
      * @param height
      */
-    public void setSize(int width, int height) {
-        this.size = new Size(width, height);
+    public void setPhotoSize(int width, int height) {
+        this.photoSize = new Size(width, height);
         refresh();
     }
 
-    public Size getSize() {
-        return size;
+    public void setVideoSize(int width, int height) {
+        this.videoSize = new Size(width, height);
+        refresh();
+    }
+
+    public Size getPhotoSize() {
+        return photoSize;
     }
 
     public void refresh() {
         setAutoFocus(this.autoFocus);
-        pictureImageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
-        mCameraSession.addPictureSurface(pictureImageReader.getSurface());
 
-        if (recorderSurface == null) {
-            // Get a persistent Surface from MediaCodec, don't forget to release when done
-            recorderSurface = MediaCodec.createPersistentInputSurface();
+        if (photoSize != null) {
+            pictureImageReader = ImageReader.newInstance(photoSize.getWidth(), photoSize.getHeight(), ImageFormat.JPEG, 2);
+            mCameraSession.addPictureSurface(pictureImageReader.getSurface());
         }
 
-        // Prepare and release a dummy MediaRecorder with our surface. Required to allocate an
-        // appropriately sized buffer before passing the Surface as the output target to the capture
-        // session.
-        MediaRecorder dummyRecorder = createRecorder(recorderSurface, createDummyFile("mp4").getAbsolutePath());
-        try {
-            dummyRecorder.prepare();
-        } catch (IOException e) {
-            // Throw unchecked exception instead of checked.
-            throw new RuntimeException("Prepare media recorder failed: " + e.getMessage());
-        }
-        dummyRecorder.release();
+        if (videoSize != null) {
+            if (recorderSurface == null) {
+                // Get a persistent Surface from MediaCodec, don't forget to release when done
+                recorderSurface = MediaCodec.createPersistentInputSurface();
+            }
 
-        mCameraSession.addRecorderSurface(recorderSurface);
+            // Prepare and release a dummy MediaRecorder with our surface. Required to allocate an
+            // appropriately sized buffer before passing the Surface as the output target to the capture
+            // session.
+            MediaRecorder dummyRecorder = createRecorder(recorderSurface, createDummyFile("mp4").getAbsolutePath());
+            try {
+                dummyRecorder.prepare();
+            } catch (IOException e) {
+                // Throw unchecked exception instead of checked.
+                throw new RuntimeException("Prepare media recorder failed: " + e.getMessage());
+            }
+            dummyRecorder.release();
+
+            mCameraSession.addRecorderSurface(recorderSurface);
+        }
     }
 
     public void recordVideo(final CameraDevice cameraDevice, final String filePath, final int orientation) throws CameraAccessException, IOException {
+        final File file = new File(filePath);
+        if (file.exists()) {
+            Log.e(TAG, "recordVideo : PATH NOT FOUND");
+            return;
+        }
+        if (videoSize == null) {
+            Log.e(TAG, "recordVideo : NO SIZE SET");
+            return;
+        }
+
         CaptureRequest.Builder recordVideoRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
         recordVideoRequestBuilder.addTarget(cameraPreview.getPreviewSurface());
         recordVideoRequestBuilder.addTarget(recorderSurface);
@@ -154,7 +174,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
             Log.e(TAG, "takePicture : PATH NOT FOUND");
             return;
         }
-        if (size == null) {
+        if (photoSize == null) {
             Log.e(TAG, "takePicture : NO SIZE SET");
             return;
         }
@@ -300,7 +320,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         mediaRecorder.setOutputFile(filePath);
         mediaRecorder.setVideoEncodingBitRate(RECORDER_VIDEO_BITRATE);
         mediaRecorder.setVideoFrameRate(RECORDER_VIDEO_FRAME_RATE);
-        mediaRecorder.setVideoSize(this.size.getWidth(), this.size.getHeight());
+        mediaRecorder.setVideoSize(this.videoSize.getWidth(), this.videoSize.getHeight());
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mediaRecorder.setInputSurface(surface);

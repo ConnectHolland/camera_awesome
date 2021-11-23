@@ -46,6 +46,9 @@ class CameraAwesome extends StatefulWidget {
   /// implement this to select a default size from device available size list
   final OnAvailableSizes? selectDefaultSize;
 
+  /// implement this to select a default video size from device available size list
+  final OnAvailableSizes? selectDefaultVideoSize;
+
   /// notify client that camera started
   final OnCameraStarted? onCameraStarted;
 
@@ -70,6 +73,9 @@ class CameraAwesome extends StatefulWidget {
   /// choose your photo size from the [selectDefaultSize] method
   final ValueNotifier<Size> photoSize;
 
+  /// choose your photo size from the [selectDefaultVideoSize] method
+  final ValueNotifier<Size> videoSize;
+
   /// set brightness correction manually range [0,1] (optionnal)
   final ValueNotifier<double>? brightness;
 
@@ -87,7 +93,9 @@ class CameraAwesome extends StatefulWidget {
     this.testMode = false,
     this.onPermissionsResult,
     required this.photoSize,
+    required this.videoSize,
     this.selectDefaultSize,
+    this.selectDefaultVideoSize,
     this.onCameraStarted,
     this.switchFlashMode,
     this.fitted = false,
@@ -233,12 +241,18 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     }
     _initAndroidPhotoSize();
     _initPhotoSize();
+    _initVideoSize();
     camerasAvailableSizes = await CamerawesomePlugin.getSizes();
     if (widget.selectDefaultSize != null) {
       widget.photoSize.value = widget.selectDefaultSize!(camerasAvailableSizes);
-      assert(widget.photoSize.value != null, "A size from the list must be selected");
     } else {
       widget.photoSize.value = camerasAvailableSizes[0];
+    }
+
+    if (widget.selectDefaultVideoSize != null) {
+      widget.videoSize.value = widget.selectDefaultVideoSize!(camerasAvailableSizes);
+    } else {
+      widget.videoSize.value = camerasAvailableSizes[0];
     }
     // start camera --
     try {
@@ -376,6 +390,13 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
           setState(() {});
         }
       }
+    });
+  }
+
+  _initVideoSize() {
+    widget.videoSize.addListener(() async {
+      await CamerawesomePlugin.setVideoSize(
+          widget.videoSize.value.width.toInt(), widget.videoSize.value.height.toInt());
     });
   }
 

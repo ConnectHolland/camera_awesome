@@ -5,20 +5,19 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-export 'camerapreview.dart';
-
-export 'picture_controller.dart';
-export 'video_controller.dart';
-
-import 'models/sensor_data.dart';
-import 'models/sensors.dart';
 import 'models/capture_modes.dart';
 import 'models/flashmodes.dart';
-export 'models/sensors.dart';
+import 'models/orientations.dart';
+import 'models/sensor_data.dart';
+import 'models/sensors.dart';
+
+export 'camerapreview.dart';
 export 'models/capture_modes.dart';
 export 'models/flashmodes.dart';
-import 'models/orientations.dart';
 export 'models/sensor_data.dart';
+export 'models/sensors.dart';
+export 'picture_controller.dart';
+export 'video_controller.dart';
 
 enum CameraState { STARTING, STARTED, STOPPING, STOPPED }
 
@@ -182,6 +181,13 @@ class CamerawesomePlugin {
   /// you can set a different size for preview and for photo
   static Future<void> setPhotoSize(int width, int height) {
     return _channel.invokeMethod<void>('setPhotoSize', <String, dynamic>{
+      'width': width,
+      'height': height,
+    });
+  }
+
+  static Future<void> setVideoSize(int width, int height) {
+    return _channel.invokeMethod<void>('setVideoSize', <String, dynamic>{
       'width': width,
       'height': height,
     });
