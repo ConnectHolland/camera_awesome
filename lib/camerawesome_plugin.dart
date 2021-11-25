@@ -26,15 +26,11 @@ class CamerawesomePlugin {
 
   static const EventChannel _orientationChannel = EventChannel('camerawesome/orientation');
 
-  static const EventChannel _permissionsChannel = EventChannel('camerawesome/permissions');
-
   static const EventChannel _imagesChannel = EventChannel('camerawesome/images');
 
   static const EventChannel _luminosityChannel = EventChannel('camerawesome/luminosity');
 
   static Stream<CameraOrientations?>? _orientationStream;
-
-  static Stream<bool>? _permissionsStream;
 
   static Stream<SensorData>? _luminositySensorDataStream;
 
@@ -46,9 +42,6 @@ class CamerawesomePlugin {
       _channel.invokeMethod("checkPermissions").then((res) => res.cast<String>());
 
   static Future<bool?> checkiOSPermissions() => _channel.invokeMethod("checkPermissions");
-
-  /// only available on Android
-  static Future<List<String>?> requestPermissions() => _channel.invokeMethod("requestPermissions");
 
   static Future<bool> start() async {
     if (currentState == CameraState.STARTED || currentState == CameraState.STARTING) {
@@ -101,17 +94,6 @@ class CamerawesomePlugin {
       }));
     }
     return _orientationStream!;
-  }
-
-  static Stream<bool>? listenPermissionResult() {
-    if (_permissionsStream == null) {
-      _permissionsStream = _permissionsChannel
-          .receiveBroadcastStream()
-          .transform(StreamTransformer<dynamic, bool>.fromHandlers(handleData: (data, sink) {
-        sink.add(data);
-      }));
-    }
-    return _permissionsStream;
   }
 
   static Stream<Uint8List>? listenCameraImages() {
@@ -278,11 +260,7 @@ class CamerawesomePlugin {
     try {
       if (Platform.isAndroid) {
         var missingPermissions = await CamerawesomePlugin.checkAndroidPermissions();
-        if (missingPermissions.length > 0) {
-          return CamerawesomePlugin.requestPermissions().then((value) => value == null);
-        } else {
-          return Future.value(true);
-        }
+        return Future.value(missingPermissions.length == 0);
       } else if (Platform.isIOS) {
         return CamerawesomePlugin.checkiOSPermissions();
       }

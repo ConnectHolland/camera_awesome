@@ -28,7 +28,7 @@ CamerAwesome include a lot of useful features like:
 - 🖼 **Fullscreen** or **SizedBox** preview support.
 - 🎮 Complete example.
 - 🎞 Taking a **picture** ( of course 😃 ).
-- 🎥 Video recording (iOS only for now).
+- 🎥 Video recording.
 
 ## 🧐&nbsp; Live example
 
@@ -62,6 +62,7 @@ CamerAwesome include a lot of useful features like:
 
     ```xml
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     ```
 
@@ -71,6 +72,8 @@ CamerAwesome include a lot of useful features like:
     ```
     minSdkVersion 21
     ```
+
+This library does **not** request these permissions for you so you have to implement this yourself before using the CameraAwesome widget.
 
 ### Import the package
 ```dart
@@ -122,6 +125,7 @@ _captureMode.value = CaptureModes.VIDEO;
       testMode: false,
       onPermissionsResult: (bool result) { },
       selectDefaultSize: (List<Size> availableSizes) => Size(1920, 1080),
+      selectDefaultVideoSize: (List<Size> availableSizes) => Size(1920, 1080),
       onCameraStarted: () { },
       onOrientationChanged: (CameraOrientations newOrientation) { },
       zoom: 0.64,
@@ -140,20 +144,21 @@ _captureMode.value = CaptureModes.VIDEO;
 <summary>Reveal parameters list</summary>
 <p>
 
-| Param                | Type                                   | Description                                                                                 | Required |
-|----------------------|----------------------------------------|---------------------------------------------------------------------------------------------|----------|
-| testMode             | ```boolean```                          | true to wrap texture                                                                        |          |
-| onPermissionsResult  | ```OnPermissionsResult```              | implement this to have a callback after CameraAwesome asked for permissions                 |          |
-| selectDefaultSize    | ```OnAvailableSizes```                 | implement this to select a default size from device available size list                     | ✅        |
-| onCameraStarted      | ```OnCameraStarted```                  | notify client that camera started                                                           |          |
-| onOrientationChanged | ```OnOrientationChanged```             | notify client that orientation changed                                                      |          |
-| switchFlashMode      | ```**ValueNotifier**<CameraFlashes>``` | change flash mode                                                                           |          |
-| zoom                 | ```ValueNotifier<double>```            | Zoom from native side. Must be between **0** and **1**                                      |          |
-| sensor               | ```ValueNotifier<Sensors>```           | sensor to initiate **BACK** or **FRONT**                                                    | ✅        |
-| photoSize            | ```ValueNotifier<Size>```              | choose your photo size from the [selectDefaultSize] method                                  |          |
-| captureMode          | ```ValueNotifier<CaptureModes>```      | choose capture mode between **PHOTO** or **VIDEO**                                          |          |
-| fitted               | ```bool```                             | whether camera preview must be as big as it needs or cropped to fill with. false by default |          |
-| imagesStreamBuilder  | ```Function```                         | returns an imageStream when camera has started preview                                      |          |
+| Param                     | Type                                   | Description                                                                                 | Required |
+|---------------------------|----------------------------------------|---------------------------------------------------------------------------------------------|----------|
+| testMode                  | ```boolean```                          | true to wrap texture                                                                        |          |
+| onPermissionsResult       | ```OnPermissionsResult```              | implement this to have a callback after CameraAwesome asked for permissions                 |          |
+| selectDefaultSize         | ```OnAvailableSizes```                 | implement this to select a default size from device available size list                     | ✅        |
+| selectDefaultVideoSize    | ```OnAvailableSizes```                 | implement this to select a default video recording size from device available size list     | ✅        |
+| onCameraStarted           | ```OnCameraStarted```                  | notify client that camera started                                                           |          |
+| onOrientationChanged      | ```OnOrientationChanged```             | notify client that orientation changed                                                      |          |
+| switchFlashMode           | ```**ValueNotifier**<CameraFlashes>``` | change flash mode                                                                           |          |
+| zoom                      | ```ValueNotifier<double>```            | Zoom from native side. Must be between **0** and **1**                                      |          |
+| sensor                    | ```ValueNotifier<Sensors>```           | sensor to initiate **BACK** or **FRONT**                                                    | ✅        |
+| photoSize                 | ```ValueNotifier<Size>```              | choose your photo size from the [selectDefaultSize] method                                  |          |
+| captureMode               | ```ValueNotifier<CaptureModes>```      | choose capture mode between **PHOTO** or **VIDEO**                                          |          |
+| fitted                    | ```bool```                             | whether camera preview must be as big as it needs or cropped to fill with. false by default |          |
+| imagesStreamBuilder       | ```Function```                         | returns an imageStream when camera has started preview                                      |          |
 
 </p>
 </details>
@@ -227,7 +232,7 @@ Feel free to **contribute** to improve this **compatibility list**.
 
 Feel free to help by submitting PR !
 
-- [ ] 🎥 Record video (partially, iOS only)
+- [x] ~~🎥 Record video~~
 - [ ] 🌠 Focus on specific point
 - [x] ~~📡 Broadcast live image stream~~
 - [x] ~~🌤 Exposure level~~

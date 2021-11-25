@@ -66,6 +66,11 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     private CameraPreview cameraPreview;
 
+    // Defaults to false because permission check doesn't include the RECORD_AUDIO permission
+    // because it's optional so it's up to the user of this package to request that permission
+    // and enable recording of audio.
+    private boolean enableAudio = false;
+
     public CameraPicture(Context context, CameraPreview cameraPreview, CameraSession cameraSession, final CameraCharacteristicsModel cameraCharacteristics) {
         this.context = context;
         this.cameraPreview = cameraPreview;
@@ -218,6 +223,10 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         this.autoFocus = autoFocus && mCameraCharacteristics.hasAutoFocus();
     }
 
+    public void setRecordingAudioMode(boolean enableAudio) {
+        this.enableAudio = enableAudio;
+    }
+
     public void dispose() {
         if (pictureImageReader != null) {
             pictureImageReader.close();
@@ -316,7 +325,9 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
 
     private MediaRecorder createRecorder(Surface surface, String filePath) {
         MediaRecorder mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        if (enableAudio) {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        }
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setOutputFile(filePath);
@@ -324,7 +335,9 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         mediaRecorder.setVideoFrameRate(RECORDER_VIDEO_FRAME_RATE);
         mediaRecorder.setVideoSize(this.videoSize.getWidth(), this.videoSize.getHeight());
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        if (enableAudio) {
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        }
         mediaRecorder.setInputSurface(surface);
 
         return mediaRecorder;
