@@ -223,7 +223,7 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         this.autoFocus = autoFocus && mCameraCharacteristics.hasAutoFocus();
     }
 
-    public void setRecordingAudioMode(boolean enableAudio) {
+    public void setRecordAudioEnabled(boolean enableAudio) {
         this.enableAudio = enableAudio;
     }
 

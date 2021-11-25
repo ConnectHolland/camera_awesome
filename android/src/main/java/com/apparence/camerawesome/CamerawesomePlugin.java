@@ -178,8 +178,8 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             case "setCaptureMode":
                 _handleSetCaptureMode(call, result);
                 break;
-            case "setRecordingAudioMode":
-                _handleSetRecordingAudioMode(call, result);
+            case "setRecordAudioEnabled":
+                _handleSetRecordAudioEnabled(call, result);
                 break;
             case "refresh":
                 _handleRefresh(call, result);
@@ -230,7 +230,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
 
     private void _handleSetup(MethodCall call, Result result) {
         if (!this.cameraPermissions.hasPermissionGranted()) {
-            result.error("MISSING_PERMISSION", "you got to accept all permissions before setup", "");
+            result.error("MISSING_PERMISSION", "permissions need to be accepted before setup", "");
             return;
         }
         if (call.argument("sensor") == null) {
@@ -511,14 +511,14 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         result.success(null);
     }
 
-    private void _handleSetRecordingAudioMode(final MethodCall call, final Result result) {
+    private void _handleSetRecordAudioEnabled(final MethodCall call, final Result result) {
         if (!call.hasArgument("enableAudio")) {
             result.error("ENABLE_AUDIO_NOT_SET", "enableAudio must be set", "");
             return;
         }
         @SuppressWarnings("ConstantConditions")
         boolean enableAudio = call.argument("enableAudio");
-        mCameraPicture.setRecordingAudioMode(enableAudio);
+        mCameraPicture.setRecordAudioEnabled(enableAudio);
     }
 
     private void _handleRefresh(final MethodCall call, final Result result) {

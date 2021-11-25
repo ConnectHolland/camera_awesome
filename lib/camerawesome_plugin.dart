@@ -219,7 +219,7 @@ class CamerawesomePlugin {
 
   /// enable audio mode recording or not
   static Future<void> setAudioMode(bool enableAudio) =>
-      _channel.invokeMethod('setRecordingAudioMode', <String, dynamic>{
+      _channel.invokeMethod('setRecordAudioEnabled', <String, dynamic>{
         'enableAudio': enableAudio,
       });
 
