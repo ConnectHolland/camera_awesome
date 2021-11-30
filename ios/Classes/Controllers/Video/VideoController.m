@@ -16,7 +16,10 @@ FourCharCode const videoFormat = kCVPixelFormatType_32BGRA;
     _videoRecordingEventSink = videoRecordingEventSink;
     _result = result;
     _isRecording = NO;
-    _isAudioEnabled = YES;
+    // Defaults to NO because permission check doesn't include the record audio permission
+    // because it's optional so it's up to the user of this package to request that permission
+    // and enable recording of audio.
+    _isAudioEnabled = NO;
     
     return self;
 }
