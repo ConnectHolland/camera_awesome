@@ -398,7 +398,7 @@
 }
 
 /// Set audio recording mode
-- (void)setRecordingAudioMode:(bool)isAudioEnabled {
+- (void)setRecordAudioEnabled:(bool)isAudioEnabled {
     if (_videoController.isRecording) {
         _result([FlutterError errorWithCode:@"CHANGE_AUDIO_MODE" message:@"impossible to change audio mode, video already recording" details:@""]);
         return;

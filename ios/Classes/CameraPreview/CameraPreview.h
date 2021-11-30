@@ -61,7 +61,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 - (void)setVideoSize:(CGSize)previewSize;
 - (void)setFlashMode:(CameraFlashMode)flashMode;
 - (void)setCaptureMode:(CaptureModes)captureMode;
-- (void)setRecordingAudioMode:(bool)enableAudio;
+- (void)setRecordAudioEnabled:(bool)enableAudio;
 - (void)refresh;
 - (void)start;
 - (void)stop;

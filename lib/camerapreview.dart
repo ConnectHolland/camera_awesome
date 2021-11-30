@@ -40,7 +40,7 @@ class CameraAwesome extends StatefulWidget {
   /// true to wrap texture
   final bool testMode;
 
-  /// implement this to have a callback after CameraAwesome asked for permissions
+  /// implement this to have a callback when CameraAwesome checked permissions.
   final OnPermissionsResult? onPermissionsResult;
 
   /// implement this to select a default size from device available size list
@@ -130,9 +130,6 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
   /// sub used to listen for brightness correction
   StreamSubscription<double>? _brightnessCorrectionDataSub;
 
-  /// sub used to listen for permissions on native side
-  StreamSubscription? _permissionStreamSub;
-
   /// sub used to listen for orientation changes on native side
   StreamSubscription? _orientationStreamSub;
 
@@ -195,23 +192,11 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     selectedPreviewSize = null;
     selectedAndroidPhotoSize = null;
     _brightnessCorrectionDataSub?.cancel();
-    _permissionStreamSub?.cancel();
     _orientationStreamSub?.cancel();
     super.dispose();
   }
 
   Future<void> initPlatformState() async {
-    // wait user accept permissions to init widget completely on android
-    if (Platform.isAndroid) {
-      _permissionStreamSub = CamerawesomePlugin.listenPermissionResult()!.listen((res) {
-        if (res) {
-          initPlatformState();
-        }
-        if (widget.onPermissionsResult != null) {
-          widget.onPermissionsResult!(res);
-        }
-      });
-    }
     hasPermissions = await CamerawesomePlugin.checkPermissions();
     if (widget.onPermissionsResult != null) {
       widget.onPermissionsResult!(hasPermissions);

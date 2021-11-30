@@ -63,9 +63,6 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
     // Flutter event channel to listen orientation changes from sensor
     private EventChannel sensorOrientationChannel;
 
-    // Flutter permission event channel to listen on result
-    private EventChannel permissionsResultChannel;
-
     // Flutter images stream event channel
     private EventChannel imageStreamChannel;
 
@@ -124,9 +121,6 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             case "checkPermissions":
                 _handleCheckPermissions(call, result);
                 break;
-            case "requestPermissions":
-                _handleRequestPermissions(call, result);
-                break;
             case "init":
                 _handleSetup(call, result);
                 break;
@@ -184,8 +178,8 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             case "setCaptureMode":
                 _handleSetCaptureMode(call, result);
                 break;
-            case "setRecordingAudioMode":
-                _handleSetRecordingAudioMode(call, result);
+            case "setRecordAudioEnabled":
+                _handleSetRecordAudioEnabled(call, result);
                 break;
             case "refresh":
                 _handleRefresh(call, result);
@@ -207,12 +201,10 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         mLuminosityNotifier = new BasicLuminosityNotifier();
         channel = new MethodChannel(messenger, "camerawesome");
         sensorOrientationChannel = new EventChannel(messenger, "camerawesome/orientation");
-        permissionsResultChannel = new EventChannel(messenger, "camerawesome/permissions");
         imageStreamChannel = new EventChannel(messenger, "camerawesome/images");
         luminosityStreamChannel = new EventChannel(messenger, "camerawesome/luminosity");
         channel.setMethodCallHandler(this);
         sensorOrientationChannel.setStreamHandler(mSensorOrientation);
-        permissionsResultChannel.setStreamHandler(cameraPermissions);
         luminosityStreamChannel.setStreamHandler((EventChannel.StreamHandler) mLuminosityNotifier);
         this.textureRegistry = textureRegistry;
     }
@@ -236,13 +228,9 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
 
     }
 
-    private void _handleRequestPermissions(MethodCall call, Result result) {
-        cameraPermissions.checkAndRequestPermissions(pluginActivity);
-    }
-
     private void _handleSetup(MethodCall call, Result result) {
         if (!this.cameraPermissions.hasPermissionGranted()) {
-            result.error("MISSING_PERMISSION", "you got to accept all permissions before setup", "");
+            result.error("MISSING_PERMISSION", "permissions need to be accepted before setup", "");
             return;
         }
         if (call.argument("sensor") == null) {
@@ -523,9 +511,14 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         result.success(null);
     }
 
-    private void _handleSetRecordingAudioMode(final MethodCall call, final Result result) {
-        // Currently not (yet) implemented for Android.
-        throw new UnsupportedOperationException();
+    private void _handleSetRecordAudioEnabled(final MethodCall call, final Result result) {
+        if (!call.hasArgument("enableAudio")) {
+            result.error("ENABLE_AUDIO_NOT_SET", "enableAudio must be set", "");
+            return;
+        }
+        @SuppressWarnings("ConstantConditions")
+        boolean enableAudio = call.argument("enableAudio");
+        mCameraPicture.setRecordAudioEnabled(enableAudio);
     }
 
     private void _handleRefresh(final MethodCall call, final Result result) {
@@ -586,7 +579,6 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         this.pluginActivity = binding.getActivity();
-        binding.addRequestPermissionsResultListener(this.cameraPermissions);
         if (this.mCameraPreview != null) {
             this.mCameraPreview.setMainHandler(new Handler(pluginActivity.getMainLooper()));
             try {
@@ -605,16 +597,12 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
         this.pluginActivity = binding.getActivity();
-        binding.addRequestPermissionsResultListener(this.cameraPermissions);
         this.mCameraPreview.setMainHandler(new Handler(pluginActivity.getMainLooper()));
     }
 
     @Override
     public void onDetachedFromActivity() {
         this.pluginActivity = null;
-        if (this.cameraPermissions != null) {
-            this.cameraPermissions.onCancel(null);
-        }
         if (this.mCameraStateManager != null) {
             this.mCameraStateManager.stopCamera();
             //this.mCameraStateManager = null;

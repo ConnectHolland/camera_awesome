@@ -107,10 +107,6 @@ FlutterEventSink imageStreamEventSink;
         [self _handleSetup:call result:result];
     } else if ([@"checkPermissions" isEqualToString:call.method]) {
         [self _handleCheckPermissions:call result:result];
-    } else if ([@"requestPermissions" isEqualToString:call.method]) {
-        // Not possible on iOS
-        result(FlutterMethodNotImplemented);
-        return;
     } else if ([@"start" isEqualToString:call.method]) {
         [self _handleStart:call result:result];
     } else if ([@"stop" isEqualToString:call.method]) {
@@ -135,7 +131,7 @@ FlutterEventSink imageStreamEventSink;
         [self _handleRecordVideo:call result:result];
     } else if ([@"stopRecordingVideo" isEqualToString:call.method]) {
         [self _handleStopRecordingVideo:call result:result];
-    } else if ([@"setRecordingAudioMode" isEqualToString:call.method]) {
+    } else if ([@"setRecordAudioEnabled" isEqualToString:call.method]) {
         [self _handleRecordingAudioMode:call result:result];
     } else if ([@"handleAutoFocus" isEqualToString:call.method]) {
         [self _handleAutoFocus:call result:result];
@@ -159,7 +155,7 @@ FlutterEventSink imageStreamEventSink;
 
 - (void)_handleRecordingAudioMode:(FlutterMethodCall*)call result:(FlutterResult)result {
     bool value = [call.arguments[@"enableAudio"] boolValue];
-    [_camera setRecordingAudioMode:value];
+    [_camera setRecordAudioEnabled:value];
 }
 
 - (void)_handleGetEffectivPreviewSize:(FlutterMethodCall*)call result:(FlutterResult)result {
