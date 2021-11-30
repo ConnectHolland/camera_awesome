@@ -253,7 +253,7 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     _initZoom();
     _initSensor();
     _initCaptureMode();
-    _initAudioEnabled();
+    await _initAudioEnabled();
     _initManualBrightness();
     _initBrightnessStream();
     if (mounted) setState(() {});
@@ -337,10 +337,15 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     });
   }
 
-  _initAudioEnabled() {
+  _initAudioEnabled() async {
     if (widget.enableAudio == null) {
       return;
     }
+
+    // Set initial value
+    await CamerawesomePlugin.setRecordAudioEnabled(widget.enableAudio!.value);
+
+    // Listen for future value changes
     widget.enableAudio!.addListener(() async {
       await CamerawesomePlugin.setRecordAudioEnabled(widget.enableAudio!.value);
     });
