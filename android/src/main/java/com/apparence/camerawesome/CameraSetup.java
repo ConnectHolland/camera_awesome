@@ -1,7 +1,10 @@
 package com.apparence.camerawesome;
 
+import static android.view.OrientationEventListener.ORIENTATION_UNKNOWN;
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -9,15 +12,17 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
+import android.util.Log;
 import android.util.Size;
 import android.view.OrientationEventListener;
+import android.view.Surface;
+import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.apparence.camerawesome.models.CameraCharacteristicsModel;
 import com.apparence.camerawesome.sensors.SensorOrientation;
-
-import static android.view.OrientationEventListener.ORIENTATION_UNKNOWN;
 
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -43,10 +48,13 @@ class CameraSetup {
 
     private SensorOrientation sensorOrientationListener;
 
+    private final int deviceNaturalOrientation;
+
     CameraSetup(Context context, Activity activity, SensorOrientation sensorOrientationListener) {
         this.context = context;
         this.activity = activity;
         this.sensorOrientationListener = sensorOrientationListener;
+        this.deviceNaturalOrientation = getScreenNaturalOrientation(activity);
     }
 
     void chooseCamera(CameraSensor sensor) throws CameraAccessException {
@@ -104,6 +112,24 @@ class CameraSetup {
         orientationEventListener.enable();
     }
 
+    /**
+     * returns the natural orientation of the device: Configuration.ORIENTATION_LANDSCAPE or Configuration.ORIENTATION_PORTRAIT .<br/>
+     * The result should be consistent no matter the orientation of the device
+     */
+    public static int getScreenNaturalOrientation(@NonNull final Context context) {
+        //based on : http://stackoverflow.com/a/9888357/878126
+        final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        final Configuration config = context.getResources().getConfiguration();
+        final int rotation = windowManager.getDefaultDisplay().getRotation();
+        if (((rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) &&
+                config.orientation == Configuration.ORIENTATION_LANDSCAPE)
+                || ((rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) &&
+                config.orientation == Configuration.ORIENTATION_PORTRAIT))
+            return Configuration.ORIENTATION_LANDSCAPE;
+        else
+            return Configuration.ORIENTATION_PORTRAIT;
+    }
+
     Size[] getOutputSizes() throws CameraAccessException {
         if (mCameraManager == null) {
             throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "cannot init CameraStateManager");
@@ -115,15 +141,47 @@ class CameraSetup {
 
     /**
      * calculate orientation for exif
+     * <p>
+     * Computes rotation required to transform from the camera sensor orientation to the device's
+     * current orientation in degrees. This value can be used as orientation in the exif data.
      *
-     * @return
      * @see CaptureRequest#JPEG_ORIENTATION
      */
-    public int getOrientation() {
+    public int getOrientation(int forceOrientation) {
+        int currentDeviceOrientationDegrees = currentOrientation;
+
+        Log.e("CameraSetup", "forceOrientation  = " + forceOrientation);
+        Log.e("CameraSetup", "currentDeviceOrientationDegrees  = " + currentDeviceOrientationDegrees);
+
+        if (forceOrientation != Configuration.ORIENTATION_UNDEFINED) {
+            // If we want to force portrait and the device natural orientation is landscape, or if
+            // we want to force landscape and the device natural orientation is portrait, we want
+            // the device to be either in 90 or 270 degrees to get the forced orientation. If that's
+            // not the case force it to be 90.
+            if ((forceOrientation == Configuration.ORIENTATION_PORTRAIT && this.deviceNaturalOrientation == Configuration.ORIENTATION_LANDSCAPE ||
+                    forceOrientation == Configuration.ORIENTATION_LANDSCAPE && this.deviceNaturalOrientation == Configuration.ORIENTATION_PORTRAIT)
+                    && currentDeviceOrientationDegrees != 90 && currentDeviceOrientationDegrees != 270) {
+                currentDeviceOrientationDegrees = 90;
+            }
+            // If we want to force portrait and the device natural orientation is portrait, or if
+            // we want to force landscape and the device natural orientation is landscape, we want
+            // the device to be either in 0 or 180 degrees to get the forced orientation. If that's
+            // not the case force it to be 0.
+            else if ((forceOrientation == Configuration.ORIENTATION_PORTRAIT && this.deviceNaturalOrientation == Configuration.ORIENTATION_PORTRAIT ||
+                    forceOrientation == Configuration.ORIENTATION_LANDSCAPE && this.deviceNaturalOrientation == Configuration.ORIENTATION_LANDSCAPE)
+                    && currentDeviceOrientationDegrees != 0 && currentDeviceOrientationDegrees != 180) {
+                currentDeviceOrientationDegrees = 0;
+            }
+        }
+
+        // Reverse device orientation for front-facing cameras
         final int sensorOrientationOffset =
-                (currentOrientation == ORIENTATION_UNKNOWN)
+                (currentDeviceOrientationDegrees == ORIENTATION_UNKNOWN)
                         ? 0
-                        : (facingFront) ? -currentOrientation : currentOrientation;
+                        : (facingFront) ? -currentDeviceOrientationDegrees : currentDeviceOrientationDegrees;
+
+        // Calculate desired orientation relative to camera orientation to make
+        // the image/video upright relative to the device orientation
         return (sensorOrientationOffset + sensorOrientation + 360) % 360;
     }
 

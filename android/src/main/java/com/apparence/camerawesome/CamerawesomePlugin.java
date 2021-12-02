@@ -2,6 +2,7 @@ package com.apparence.camerawesome;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.camera2.CameraAccessException;
 import android.os.Build;
 import android.os.Handler;
@@ -422,17 +423,33 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             result.error("PATH_NOT_SET", "a file path must be set", "");
             return;
         }
+
         String path = call.argument("path");
         try {
             mCameraPicture.takePicture(
                     mCameraStateManager.getCameraDevice(),
                     path,
-                    mCameraSetup.getOrientation(),
+                    mCameraSetup.getOrientation(getOrientationArgument(call)),
                     createTakePhotoResultListener(result)
             );
         } catch (CameraAccessException e) {
             result.error(e.getMessage(), "cannot open camera", "");
         }
+    }
+
+    private int getOrientationArgument(final MethodCall call) {
+        int orientation = Configuration.ORIENTATION_UNDEFINED;
+        String orientationMethodChannelArg = call.argument("orientation");
+
+        if (orientationMethodChannelArg != null) {
+            if (orientationMethodChannelArg.equals("PORTRAIT")) {
+                orientation = Configuration.ORIENTATION_PORTRAIT;
+            } else if (orientationMethodChannelArg.equals("LANDSCAPE")) {
+                orientation = Configuration.ORIENTATION_LANDSCAPE;
+            }
+        }
+
+        return orientation;
     }
 
     private void _handleFlashMode(final MethodCall call, final Result result) {
@@ -488,7 +505,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             mCameraPicture.recordVideo(
                     mCameraStateManager.getCameraDevice(),
                     path,
-                    mCameraSetup.getOrientation()
+                    mCameraSetup.getOrientation(getOrientationArgument(call))
             );
 
             result.success(null);
