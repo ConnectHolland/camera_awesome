@@ -343,11 +343,23 @@
 # pragma mark - Camera picture
 
 /// Take the picture into the given path
-- (void)takePictureAtPath:(NSString *)path {
+- (void)takePictureAtPath:(NSString *)path forceOrientation:(Orientation)forceOrientation {
+    NSInteger preferredOrientation = _motionController.deviceOrientation;
+    
+    if(forceOrientation != Undefined) {
+        // Force portrait when device orientation is landscape.
+        if(forceOrientation == Portrait && (_motionController.deviceOrientation == UIDeviceOrientationLandscapeLeft || _motionController.deviceOrientation == UIDeviceOrientationLandscapeRight)) {
+            preferredOrientation = UIDeviceOrientationPortrait;
+        }
+        // Force landscape when device orientation is portrait.
+        else if(forceOrientation == Landscape && (_motionController.deviceOrientation == UIDeviceOrientationPortrait || _motionController.deviceOrientation == UIDeviceOrientationPortraitUpsideDown)) {
+            preferredOrientation = UIDeviceOrientationLandscapeLeft;
+        }
+    }
     
     // Instanciate camera picture obj
     CameraPictureController *cameraPicture = [[CameraPictureController alloc] initWithPath:path
-                                                                               orientation:_motionController.deviceOrientation
+                                                                               orientation:preferredOrientation
                                                                                     sensor:_cameraSensor
                                                                                     result:_result
                                                                                   callback:^{
