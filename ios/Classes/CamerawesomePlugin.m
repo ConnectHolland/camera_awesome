@@ -205,12 +205,12 @@ FlutterEventSink imageStreamEventSink;
 
 - (Orientation)_getOrientationArgument:(FlutterMethodCall*)call {
     Orientation orientation = Undefined;
-    NSString *orientationMethodChannelArg = call.arguments[@"orientation"];
+    NSString *orientationMethodCallArg = call.arguments[@"orientation"];
     
-    if(orientationMethodChannelArg != nil) {
-        if ([orientationMethodChannelArg isEqualToString:@"PORTRAIT"]) {
+    if(orientationMethodCallArg != nil) {
+        if ([orientationMethodCallArg isEqualToString:@"PORTRAIT"]) {
             orientation = Portrait;
-        } else if ([orientationMethodChannelArg isEqualToString:@"LANDSCAPE"]) {
+        } else if ([orientationMethodCallArg isEqualToString:@"LANDSCAPE"]) {
             orientation = Landscape;
         }
     }
