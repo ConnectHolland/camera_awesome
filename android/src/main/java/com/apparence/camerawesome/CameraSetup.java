@@ -113,7 +113,8 @@ class CameraSetup {
     }
 
     /**
-     * returns the natural orientation of the device: Configuration.ORIENTATION_LANDSCAPE or Configuration.ORIENTATION_PORTRAIT .<br/>
+     * Returns the natural orientation of the device: Configuration.ORIENTATION_LANDSCAPE or
+     * Configuration.ORIENTATION_PORTRAIT.
      * The result should be consistent no matter the orientation of the device
      */
     public static int getScreenNaturalOrientation(@NonNull final Context context) {
