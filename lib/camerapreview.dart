@@ -43,11 +43,14 @@ class CameraAwesome extends StatefulWidget {
   /// implement this to have a callback when CameraAwesome checked permissions.
   final OnPermissionsResult? onPermissionsResult;
 
-  /// implement this to select a default size from device available size list
-  final OnAvailableSizes? selectDefaultSize;
+  /// implement this to select a preview size from device available size list
+  final OnAvailableSizes? selectPreviewSize;
 
-  /// implement this to select a default video size from device available size list
-  final OnAvailableSizes? selectDefaultVideoSize;
+  /// implement this to select a video size from device available size list
+  final OnAvailableSizes? selectVideoSize;
+
+  /// implement this to select a photo size from device available size list
+  final OnAvailableSizes? selectPhotoSize;
 
   /// notify client that camera started
   final OnCameraStarted? onCameraStarted;
@@ -70,11 +73,14 @@ class CameraAwesome extends StatefulWidget {
   /// choose between [BACK] and [FRONT]
   final ValueNotifier<Sensors> sensor;
 
-  /// choose your photo size from the [selectDefaultSize] method
-  final ValueNotifier<Size> photoSize;
+  /// choose your photo size from the [selectPreviewSize] method
+  final ValueNotifier<Size> previewSize;
 
-  /// choose your photo size from the [selectDefaultVideoSize] method
+  /// choose your photo size from the [selectVideoSize] method
   final ValueNotifier<Size> videoSize;
+
+  /// choose your photo size from the [selectPhotoSize] method
+  final ValueNotifier<Size> photoSize;
 
   /// set brightness correction manually range [0,1] (optionnal)
   final ValueNotifier<double>? brightness;
@@ -92,10 +98,12 @@ class CameraAwesome extends StatefulWidget {
     Key? key,
     this.testMode = false,
     this.onPermissionsResult,
-    required this.photoSize,
+    required this.previewSize,
     required this.videoSize,
-    this.selectDefaultSize,
-    this.selectDefaultVideoSize,
+    required this.photoSize,
+    this.selectPreviewSize,
+    this.selectVideoSize,
+    this.selectPhotoSize,
     this.onCameraStarted,
     this.switchFlashMode,
     this.fitted = false,
@@ -133,11 +141,8 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
   /// sub used to listen for orientation changes on native side
   StreamSubscription? _orientationStreamSub;
 
-  /// choose preview size, default to the first available size in the list (MAX) or use [selectDefaultSize]
+  /// choose preview size, default to the first available size in the list (MAX) or use [selectPreviewSize]
   ValueNotifier<Size?>? selectedPreviewSize;
-
-  /// Only for Android, Preview and Photo size can be different. Android preview can't be higher than 1980x1024
-  ValueNotifier<Size?>? selectedAndroidPhotoSize;
 
   @override
   void initState() {
@@ -151,7 +156,6 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     // can be used as landscape too
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     selectedPreviewSize = ValueNotifier(null);
-    selectedAndroidPhotoSize = ValueNotifier(null);
     brightnessCorrectionData = PublishSubject();
     initPlatformState();
     super.didChangeDependencies();
@@ -187,10 +191,8 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     stopping = true;
     WidgetsBinding.instance!.removeObserver(this);
     CamerawesomePlugin.stop();
-    selectedAndroidPhotoSize!.dispose();
     selectedPreviewSize!.dispose();
     selectedPreviewSize = null;
-    selectedAndroidPhotoSize = null;
     _brightnessCorrectionDataSub?.cancel();
     _orientationStreamSub?.cancel();
     super.dispose();
@@ -224,20 +226,27 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     if (Platform.isAndroid) {
       _initImageStream();
     }
-    _initAndroidPhotoSize();
     _initPhotoSize();
+    _initPreviewSize();
     _initVideoSize();
     camerasAvailableSizes = await CamerawesomePlugin.getSizes();
-    if (widget.selectDefaultSize != null) {
-      widget.photoSize.value = widget.selectDefaultSize!(camerasAvailableSizes);
+    if (widget.selectPreviewSize != null) {
+      widget.previewSize.value = widget.selectPreviewSize!(camerasAvailableSizes);
     } else {
-      widget.photoSize.value = camerasAvailableSizes[0];
+      widget.previewSize.value = camerasAvailableSizes[0];
     }
 
-    if (widget.selectDefaultVideoSize != null) {
-      widget.videoSize.value = widget.selectDefaultVideoSize!(camerasAvailableSizes);
+    if (widget.selectVideoSize != null) {
+      widget.videoSize.value = widget.selectVideoSize!(camerasAvailableSizes);
     } else {
       widget.videoSize.value = camerasAvailableSizes[0];
+    }
+
+    if (widget.selectPhotoSize != null) {
+      widget.photoSize.value = widget.selectPhotoSize!(camerasAvailableSizes);
+    } else {
+      print(camerasAvailableSizes[0]);
+      widget.photoSize.value = camerasAvailableSizes[0];
     }
     // start camera --
     try {
@@ -351,27 +360,22 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     });
   }
 
-  _initAndroidPhotoSize() {
-    if (selectedAndroidPhotoSize == null) {
-      return;
-    }
-    selectedAndroidPhotoSize!.addListener(() async {
-      if (selectedAndroidPhotoSize!.value == null || !Platform.isAndroid) {
+  _initPhotoSize() {
+    widget.photoSize.addListener(() async {
+      // Adjusting the photo size is only supported on Android.
+      if (!Platform.isAndroid) {
         return;
       }
-      await CamerawesomePlugin.setPhotoSize(selectedAndroidPhotoSize!.value!.width.toInt(),
-          selectedAndroidPhotoSize!.value!.height.toInt());
+
+      await CamerawesomePlugin.setPhotoSize(
+          widget.photoSize.value.width.toInt(), widget.photoSize.value.height.toInt());
     });
   }
 
-  _initPhotoSize() {
-    widget.photoSize.addListener(() async {
-      if (selectedAndroidPhotoSize == null) {
-        return;
-      }
-      selectedAndroidPhotoSize!.value = widget.photoSize.value;
+  _initPreviewSize() {
+    widget.previewSize.addListener(() async {
       await CamerawesomePlugin.setPreviewSize(
-          widget.photoSize.value.width.toInt(), widget.photoSize.value.height.toInt());
+          widget.previewSize.value.width.toInt(), widget.previewSize.value.height.toInt());
       var effectivPreviewSize = await CamerawesomePlugin.getEffectivPreviewSize();
       if (selectedPreviewSize != null) {
         // this future can take time and be called after we disposed

@@ -476,12 +476,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         child: Center(
           child: CameraAwesome(
             onPermissionsResult: _onPermissionsResult,
-            selectDefaultSize: (availableSizes) {
+            selectPreviewSize: (availableSizes) {
               this.availableSizes = availableSizes;
               return availableSizes[0];
             },
             captureMode: captureMode,
-            photoSize: photoSize,
+            previewSize: photoSize,
             sensor: sensor,
             brightness: brightnessCorrection,
             luminosityLevelStreamBuilder: (s) => brightnessStream = s,
@@ -506,12 +506,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               width: MediaQuery.of(context).size.width,
               child: CameraAwesome(
                 onPermissionsResult: _onPermissionsResult,
-                selectDefaultSize: (availableSizes) {
+                selectPreviewSize: (availableSizes) {
                   this.availableSizes = availableSizes;
                   return availableSizes[0];
                 },
                 captureMode: captureMode,
-                photoSize: photoSize,
+                previewSize: photoSize,
                 brightness: brightnessCorrection,
                 luminosityLevelStreamBuilder: (s) => brightnessStream = s,
                 sensor: sensor,
