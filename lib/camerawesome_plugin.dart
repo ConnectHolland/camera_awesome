@@ -175,16 +175,32 @@ class CamerawesomePlugin {
     });
   }
 
-  static takePhoto(String path) {
+  static takePhoto(String path, Orientation? orientation) {
     return _channel.invokeMethod<void>('takePhoto', <String, dynamic>{
       'path': path,
+      'orientation': _getMethodChannelOrientationValue(orientation)
     });
   }
 
-  static recordVideo(String path) {
+  static recordVideo(String path, Orientation? orientation) {
     return _channel.invokeMethod<void>('recordVideo', <String, dynamic>{
       'path': path,
+      'orientation': _getMethodChannelOrientationValue(orientation)
     });
+  }
+
+  static String _getMethodChannelOrientationValue(Orientation? orientation) {
+    if (orientation == null) {
+      return "UNDEFINED";
+    }
+
+    if (orientation == Orientation.landscape) {
+      return "LANDSCAPE";
+    } else if (orientation == Orientation.portrait) {
+      return "PORTRAIT";
+    }
+
+    return "UNDEFINED";
   }
 
   static stopRecordingVideo() {

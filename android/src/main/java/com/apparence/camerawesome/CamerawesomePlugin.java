@@ -2,13 +2,16 @@ package com.apparence.camerawesome;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.camera2.CameraAccessException;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.apparence.camerawesome.CameraSettingsManager.CameraSettingsHandler;
@@ -95,6 +98,12 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
 
     // listen sensor orientation
     private SensorOrientationListener mSensorOrientation = new SensorOrientationListener();
+
+    private HandlerThread backgroundThread;
+
+    private Handler backgroundHandler;
+
+    private Handler mainHandler;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -244,6 +253,12 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         String sensorArg = call.argument("sensor");
         CameraSensor sensor = sensorArg.equals("FRONT") ? CameraSensor.FRONT : CameraSensor.BACK;
         try {
+            // setup background thread
+            backgroundThread = new HandlerThread("AsyncThread");
+            backgroundThread.start();
+            backgroundHandler = new Handler(backgroundThread.getLooper());
+
+            mainHandler = new Handler(pluginActivity.getMainLooper());
             // init setup
             mCameraSetup = new CameraSetup(applicationContext, pluginActivity, mSensorOrientation);
             mCameraSetup.chooseCamera(sensor);
@@ -257,7 +272,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
                     mCameraSession,
                     mCameraSetup.getCharacteristicsModel(),
                     new FlutterSurfaceFactory(textureRegistry),
-                    new Handler(pluginActivity.getMainLooper()),
+                    mainHandler,
                     streamImages);
             imageStreamChannel.setStreamHandler(mCameraPreview);
             // init picture recorder
@@ -414,6 +429,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         if (throwIfCameraNotInit(result))
             return;
         mCameraStateManager.stopCamera();
+        backgroundThread.quit();
         result.success(true);
     }
 
@@ -422,17 +438,33 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             result.error("PATH_NOT_SET", "a file path must be set", "");
             return;
         }
+
         String path = call.argument("path");
         try {
             mCameraPicture.takePicture(
                     mCameraStateManager.getCameraDevice(),
                     path,
-                    mCameraSetup.getOrientation(),
+                    mCameraSetup.getOrientation(getOrientationArgument(call)),
                     createTakePhotoResultListener(result)
             );
         } catch (CameraAccessException e) {
             result.error(e.getMessage(), "cannot open camera", "");
         }
+    }
+
+    private int getOrientationArgument(final MethodCall call) {
+        int orientation = Configuration.ORIENTATION_UNDEFINED;
+        String orientationMethodChannelArg = call.argument("orientation");
+
+        if (orientationMethodChannelArg != null) {
+            if (orientationMethodChannelArg.equals("PORTRAIT")) {
+                orientation = Configuration.ORIENTATION_PORTRAIT;
+            } else if (orientationMethodChannelArg.equals("LANDSCAPE")) {
+                orientation = Configuration.ORIENTATION_LANDSCAPE;
+            }
+        }
+
+        return orientation;
     }
 
     private void _handleFlashMode(final MethodCall call, final Result result) {
@@ -483,18 +515,34 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
             result.error("PATH_NOT_SET", "a file path must be set", "");
             return;
         }
-        String path = call.argument("path");
-        try {
-            mCameraPicture.recordVideo(
-                    mCameraStateManager.getCameraDevice(),
-                    path,
-                    mCameraSetup.getOrientation()
-            );
+        final String path = call.argument("path");
 
-            result.success(null);
-        } catch (CameraAccessException | IOException e) {
-            result.error(e.getMessage(), "cannot open camera", "");
-        }
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mCameraPicture.recordVideo(
+                            mCameraStateManager.getCameraDevice(),
+                            path,
+                            mCameraSetup.getOrientation(getOrientationArgument(call))
+                    );
+                } catch (CameraAccessException | IOException e) {
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            result.error(e.getMessage(), "cannot open camera", "");
+                        }
+                    });
+                }
+
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        result.success(null);
+                    }
+                });
+            }
+        });
     }
 
     private void _handleStopRecordingVideo(final MethodCall call, final Result result) {
