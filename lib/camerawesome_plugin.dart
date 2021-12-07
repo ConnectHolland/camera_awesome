@@ -248,6 +248,12 @@ class CamerawesomePlugin {
     });
   }
 
+  /// toggle debug logging enable
+  static Future<void> setDebugLoggingEnabled(bool enabled) =>
+      _channel.invokeMethod('setDebugLoggingEnabled', <String, bool>{
+        'enabled': enabled,
+      });
+
   // listen for luminosity level
   static Stream<SensorData>? listenLuminosityLevel() {
     if (!Platform.isAndroid) {

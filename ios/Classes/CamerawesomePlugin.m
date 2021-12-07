@@ -11,6 +11,7 @@ FlutterEventSink imageStreamEventSink;
 @property(readonly, nonatomic) NSObject<FlutterBinaryMessenger> *messenger;
 @property int64_t textureId;
 @property CameraPreview *camera;
+@property(nonatomic, assign) BOOL debugLoggingEnabled;
 
 - (instancetype)initWithRegistry:(NSObject<FlutterTextureRegistry> *)registry messenger:(NSObject<FlutterBinaryMessenger> *)messenger;
 
@@ -149,6 +150,8 @@ FlutterEventSink imageStreamEventSink;
         [self _handleGetMaxZoom:call result:result];
     } else if ([@"dispose" isEqualToString:call.method]) {
         [self _handleDispose:call result:result];
+    } else if ([@"setDebugLoggingEnabled" isEqualToString:call.method]) {
+        [self _handleSetDebugLoggingEnabled:call result:result];
     } else {
         result(FlutterMethodNotImplemented);
         return;
@@ -411,20 +414,27 @@ FlutterEventSink imageStreamEventSink;
     result(@(_textureId));
 }
 
+- (void)_handleSetDebugLoggingEnabled:(FlutterMethodCall *)call result:(FlutterResult)result {
+    BOOL enabled = [call.arguments[@"enabled"] boolValue];
+    debugLoggingEnabled = enabled;
+    result(nil);
+}
+
 - (FlutterResult)wrappedResult:(FlutterResult)result method:(NSString *)method {
-//    # Uncomment this code to easily debug performance issues
-//    CFTimeInterval startTime = CACurrentMediaTime();
-//
-//    NSLog(@"NEW RESULT BLOCK SET %@ FOR METHOD: %@", result, method);
-//
-//    FlutterResult wrapped = ^void(id _Nullable theResult) {
-//        CFTimeInterval elapsedTime = CACurrentMediaTime() - startTime;
-//        NSLog(@"RESULT BLOCK CALLED: %@ FOR METHOD: %@ elapsed time: %f", result, method, elapsedTime);
-//        result(theResult);
-//    };
-//
-//    return wrapped;
-    return result;
+    if (!debugLoggingEnabled) {
+        return result;
+    }
+
+    CFTimeInterval startTime = CACurrentMediaTime();
+    NSLog(@"Result block set: %@ for method: %@", result, method);
+
+    FlutterResult wrapped = ^void(id _Nullable theResult) {
+        CFTimeInterval elapsedTime = CACurrentMediaTime() - startTime;
+        NSLog(@"Result block called: %@ for method: %@ elapsed time: %f", result, method, elapsedTime);
+        result(theResult);
+    };
+
+    return wrapped;
 }
 
 @end
