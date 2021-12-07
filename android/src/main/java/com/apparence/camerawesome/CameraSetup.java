@@ -54,7 +54,7 @@ class CameraSetup {
         this.context = context;
         this.activity = activity;
         this.sensorOrientationListener = sensorOrientationListener;
-        this.deviceNaturalOrientation = getScreenNaturalOrientation(activity);
+        this.deviceNaturalOrientation = getDeviceNaturalOrientation(activity);
     }
 
     void chooseCamera(CameraSensor sensor) throws CameraAccessException {
@@ -117,7 +117,7 @@ class CameraSetup {
      * Configuration.ORIENTATION_PORTRAIT.
      * The result should be consistent no matter the orientation of the device
      */
-    public static int getScreenNaturalOrientation(@NonNull final Context context) {
+    public static int getDeviceNaturalOrientation(@NonNull final Context context) {
         //based on : http://stackoverflow.com/a/9888357/878126
         final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         final Configuration config = context.getResources().getConfiguration();
@@ -148,19 +148,16 @@ class CameraSetup {
      *
      * @see CaptureRequest#JPEG_ORIENTATION
      */
-    public int getOrientation(int forceOrientation) {
+    public int getOrientation(int requestedOrientation) {
         int currentDeviceOrientationDegrees = currentOrientation;
 
-        Log.e("CameraSetup", "forceOrientation  = " + forceOrientation);
-        Log.e("CameraSetup", "currentDeviceOrientationDegrees  = " + currentDeviceOrientationDegrees);
-
-        if (forceOrientation != Configuration.ORIENTATION_UNDEFINED) {
+        if (requestedOrientation != Configuration.ORIENTATION_UNDEFINED) {
             // If we want to force portrait and the device natural orientation is landscape, or if
             // we want to force landscape and the device natural orientation is portrait, we want
             // the device to be either in 90 or 270 degrees to get the forced orientation. If that's
             // not the case force it to be 90.
-            if ((forceOrientation == Configuration.ORIENTATION_PORTRAIT && this.deviceNaturalOrientation == Configuration.ORIENTATION_LANDSCAPE ||
-                    forceOrientation == Configuration.ORIENTATION_LANDSCAPE && this.deviceNaturalOrientation == Configuration.ORIENTATION_PORTRAIT)
+            if ((requestedOrientation == Configuration.ORIENTATION_PORTRAIT && this.deviceNaturalOrientation == Configuration.ORIENTATION_LANDSCAPE ||
+                    requestedOrientation == Configuration.ORIENTATION_LANDSCAPE && this.deviceNaturalOrientation == Configuration.ORIENTATION_PORTRAIT)
                     && currentDeviceOrientationDegrees != 90 && currentDeviceOrientationDegrees != 270) {
                 currentDeviceOrientationDegrees = 90;
             }
@@ -168,8 +165,8 @@ class CameraSetup {
             // we want to force landscape and the device natural orientation is landscape, we want
             // the device to be either in 0 or 180 degrees to get the forced orientation. If that's
             // not the case force it to be 0.
-            else if ((forceOrientation == Configuration.ORIENTATION_PORTRAIT && this.deviceNaturalOrientation == Configuration.ORIENTATION_PORTRAIT ||
-                    forceOrientation == Configuration.ORIENTATION_LANDSCAPE && this.deviceNaturalOrientation == Configuration.ORIENTATION_LANDSCAPE)
+            else if ((requestedOrientation == Configuration.ORIENTATION_PORTRAIT && this.deviceNaturalOrientation == Configuration.ORIENTATION_PORTRAIT ||
+                    requestedOrientation == Configuration.ORIENTATION_LANDSCAPE && this.deviceNaturalOrientation == Configuration.ORIENTATION_LANDSCAPE)
                     && currentDeviceOrientationDegrees != 0 && currentDeviceOrientationDegrees != 180) {
                 currentDeviceOrientationDegrees = 0;
             }
