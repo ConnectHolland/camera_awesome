@@ -75,7 +75,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 - (void)setZoom:(float)value;
 - (CGFloat)getMaxZoom;
 - (CGSize)getEffectivPreviewSize;
-- (void)setUpCaptureSessionForAudio;
+- (nullable FlutterError *)setUpCaptureSessionForAudio;
 
 @end
 

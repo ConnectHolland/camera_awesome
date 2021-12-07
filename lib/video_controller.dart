@@ -6,7 +6,7 @@ class VideoController {
   Future<void> recordVideo(String filePath, Orientation? orientation) async {
     // We need to refresh camera before using it
     // audio channel need to be ready
-    CamerawesomePlugin.refresh();
+    await CamerawesomePlugin.refresh();
 
     await CamerawesomePlugin.recordVideo(filePath, orientation);
   }

@@ -38,8 +38,9 @@ class CamerawesomePlugin {
 
   static CameraState currentState = CameraState.STOPPED;
 
-  static Future<List<String>> checkAndroidPermissions() =>
-      _channel.invokeMethod("checkPermissions").then((res) => res.cast<String>());
+  static Future<List<String>> checkAndroidPermissions() => _channel
+      .invokeMethod("checkPermissions")
+      .then((res) => (res as List<dynamic>).cast<String>());
 
   static Future<bool?> checkiOSPermissions() => _channel.invokeMethod("checkPermissions");
 
@@ -48,7 +49,7 @@ class CamerawesomePlugin {
       return true;
     }
     currentState = CameraState.STARTING;
-    var res = await _channel.invokeMethod("start");
+    bool res = await _channel.invokeMethod("start") as bool;
     if (res) currentState = CameraState.STARTED;
     return res;
   }
@@ -101,7 +102,7 @@ class CamerawesomePlugin {
       _imagesStream = _imagesChannel
           .receiveBroadcastStream()
           .transform(StreamTransformer<dynamic, Uint8List>.fromHandlers(handleData: (data, sink) {
-        sink.add(data);
+        sink.add(data as Uint8List);
       }));
     }
     return _imagesStream;
@@ -124,8 +125,8 @@ class CamerawesomePlugin {
       final sizes = await _channel.invokeMethod<List<dynamic>>("availableSizes");
       final res = <Size>[];
       sizes?.forEach((el) {
-        int width = el["width"];
-        int height = el["height"];
+        int width = el["width"] as int;
+        int height = el["height"] as int;
         res.add(Size(width.toDouble(), height.toDouble()));
       });
       return res;
@@ -154,8 +155,8 @@ class CamerawesomePlugin {
   static Future<Size> getEffectivPreviewSize() async {
     final sizeMap = await _channel.invokeMapMethod<String, dynamic>("getEffectivPreviewSize");
 
-    final int width = sizeMap?["width"] ?? 0;
-    final int height = sizeMap?["height"] ?? 0;
+    final int width = sizeMap?["width"] as int? ?? 0;
+    final int height = sizeMap?["height"] as int? ?? 0;
     return Size(width.toDouble(), height.toDouble());
   }
 
@@ -203,9 +204,7 @@ class CamerawesomePlugin {
     return "UNDEFINED";
   }
 
-  static stopRecordingVideo() {
-    return _channel.invokeMethod<void>('stopRecordingVideo');
-  }
+  static stopRecordingVideo() => _channel.invokeMethod('stopRecordingVideo');
 
   /// Switch flash mode from Android / iOS
   static Future<void> setFlashMode(CameraFlashes flashMode) =>
@@ -249,6 +248,12 @@ class CamerawesomePlugin {
     });
   }
 
+  /// toggle debug logging enable
+  static Future<void> setDebugLoggingEnabled(bool enabled) =>
+      _channel.invokeMethod('setDebugLoggingEnabled', <String, bool>{
+        'enabled': enabled,
+      });
+
   // listen for luminosity level
   static Stream<SensorData>? listenLuminosityLevel() {
     if (!Platform.isAndroid) {
@@ -259,7 +264,7 @@ class CamerawesomePlugin {
       _luminositySensorDataStream = _luminosityChannel
           .receiveBroadcastStream()
           .transform(StreamTransformer<dynamic, SensorData>.fromHandlers(handleData: (data, sink) {
-        sink.add(SensorData(data));
+        sink.add(SensorData(data as double));
       }));
     }
     return _luminositySensorDataStream;
