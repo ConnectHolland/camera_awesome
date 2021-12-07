@@ -148,7 +148,7 @@
 - (void)setResult:(FlutterResult _Nonnull)result {
     _result = result;
     
-    // Spread resul in controllers
+    // Spread result in controllers
     [_videoController setResult:result];
 }
 
@@ -343,11 +343,23 @@
 # pragma mark - Camera picture
 
 /// Take the picture into the given path
-- (void)takePictureAtPath:(NSString *)path {
+- (void)takePictureAtPath:(NSString *)path forceOrientation:(Orientation)forceOrientation {
+    NSInteger preferredOrientation = _motionController.deviceOrientation;
+    
+    if(forceOrientation != Undefined) {
+        // Force portrait when device orientation is landscape.
+        if(forceOrientation == Portrait && (_motionController.deviceOrientation == UIDeviceOrientationLandscapeLeft || _motionController.deviceOrientation == UIDeviceOrientationLandscapeRight)) {
+            preferredOrientation = UIDeviceOrientationPortrait;
+        }
+        // Force landscape when device orientation is portrait.
+        else if(forceOrientation == Landscape && (_motionController.deviceOrientation == UIDeviceOrientationPortrait || _motionController.deviceOrientation == UIDeviceOrientationPortraitUpsideDown)) {
+            preferredOrientation = UIDeviceOrientationLandscapeLeft;
+        }
+    }
     
     // Instanciate camera picture obj
     CameraPictureController *cameraPicture = [[CameraPictureController alloc] initWithPath:path
-                                                                               orientation:_motionController.deviceOrientation
+                                                                               orientation:preferredOrientation
                                                                                     sensor:_cameraSensor
                                                                                     result:_result
                                                                                   callback:^{
@@ -422,16 +434,21 @@
     [_captureSession removeOutput:_audioOutput];
     
     if (_videoController.isRecording) {
-        [self setUpCaptureSessionForAudio];
+        FlutterError *error = [self setUpCaptureSessionForAudio];
+        if (error != nil) {
+            _result(error);
+            return;
+        }
     }
     
     
     [_captureSession commitConfiguration];
+    _result(nil);
 }
 
 # pragma mark - Audio
 /// Setup audio channel to record audio
-- (void)setUpCaptureSessionForAudio {
+- (nullable FlutterError *)setUpCaptureSessionForAudio {
     NSError *error = nil;
     // Create a device input with the device and add it to the session.
     // Setup the audio input.
@@ -439,8 +456,9 @@
     AVCaptureDeviceInput *audioInput = [AVCaptureDeviceInput deviceInputWithDevice:audioDevice
                                                                              error:&error];
     if (error) {
-        _result([FlutterError errorWithCode:@"VIDEO_ERROR" message:@"error when trying to setup audio capture" details:error.description]);
+        return [FlutterError errorWithCode:@"VIDEO_ERROR" message:@"error when trying to setup audio capture" details:error.description];
     }
+    
     // Setup the audio output.
     _audioOutput = [[AVCaptureAudioDataOutput alloc] init];
     
@@ -454,6 +472,8 @@
             [_videoController setIsAudioSetup:NO];
         }
     }
+    
+    return nil;
 }
 
 # pragma mark - Camera Delegates

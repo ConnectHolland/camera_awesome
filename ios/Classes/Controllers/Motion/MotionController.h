@@ -11,6 +11,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef enum {
+    Undefined,
+    Portrait,
+    Landscape
+} Orientation;
+
 @interface MotionController : NSObject
 
 @property(nonatomic) FlutterEventSink orientationEventSink;

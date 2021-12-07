@@ -11,6 +11,7 @@ FlutterEventSink imageStreamEventSink;
 @property(readonly, nonatomic) NSObject<FlutterBinaryMessenger> *messenger;
 @property int64_t textureId;
 @property CameraPreview *camera;
+@property(nonatomic, assign) BOOL debugLoggingEnabled;
 
 - (instancetype)initWithRegistry:(NSObject<FlutterTextureRegistry> *)registry messenger:(NSObject<FlutterBinaryMessenger> *)messenger;
 
@@ -95,14 +96,16 @@ FlutterEventSink imageStreamEventSink;
     if (_dispatchQueue == nil) {
         _dispatchQueue = dispatch_queue_create("camerawesome.dispatchqueue", NULL);
     }
-    [_camera setResult:result];
     
     dispatch_async(_dispatchQueue, ^{
         [self handleMethodCallAsync:call result:result];
     });
 }
 
-- (void)handleMethodCallAsync:(FlutterMethodCall *)call result:(FlutterResult)result {
+- (void)handleMethodCallAsync:(FlutterMethodCall *)call result:(FlutterResult)theResult {
+
+    FlutterResult result = [self wrappedResult:theResult method:call.method];
+    
     if ([@"init" isEqualToString:call.method]) {
         [self _handleSetup:call result:result];
     } else if ([@"checkPermissions" isEqualToString:call.method]) {
@@ -147,6 +150,8 @@ FlutterEventSink imageStreamEventSink;
         [self _handleGetMaxZoom:call result:result];
     } else if ([@"dispose" isEqualToString:call.method]) {
         [self _handleDispose:call result:result];
+    } else if ([@"setDebugLoggingEnabled" isEqualToString:call.method]) {
+        [self _handleSetDebugLoggingEnabled:call result:result];
     } else {
         result(FlutterMethodNotImplemented);
         return;
@@ -155,6 +160,7 @@ FlutterEventSink imageStreamEventSink;
 
 - (void)_handleRecordingAudioMode:(FlutterMethodCall*)call result:(FlutterResult)result {
     bool value = [call.arguments[@"enableAudio"] boolValue];
+    [_camera setResult:result];
     [_camera setRecordAudioEnabled:value];
 }
 
@@ -168,11 +174,13 @@ FlutterEventSink imageStreamEventSink;
 
 - (void)_handleSetZoom:(FlutterMethodCall*)call result:(FlutterResult)result {
     float value = [call.arguments[@"zoom"] floatValue];
+    [_camera setResult:result];
     [_camera setZoom:value];
 }
 
-- (NSInteger)_handleGetMaxZoom:(FlutterMethodCall*)call result:(FlutterResult)result {
-    return [_camera getMaxZoom];
+- (void)_handleGetMaxZoom:(FlutterMethodCall*)call result:(FlutterResult)result {
+    CGFloat maxZoom = [_camera getMaxZoom];
+    result(@(maxZoom));
 }
 
 - (void)_handleDispose:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -189,7 +197,8 @@ FlutterEventSink imageStreamEventSink;
         return;
     }
     
-    [_camera takePictureAtPath:path];
+    [_camera setResult:result];
+    [_camera takePictureAtPath:path forceOrientation:[self _getOrientationArgument:call]];
 }
 
 - (void)_handleRecordVideo:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -200,10 +209,27 @@ FlutterEventSink imageStreamEventSink;
         return;
     }
     
+    [_camera setResult:result];
     [_camera recordVideoAtPath:path];
 }
 
+- (Orientation)_getOrientationArgument:(FlutterMethodCall*)call {
+    Orientation orientation = Undefined;
+    NSString *orientationMethodCallArg = call.arguments[@"orientation"];
+    
+    if(orientationMethodCallArg != nil) {
+        if ([orientationMethodCallArg isEqualToString:@"PORTRAIT"]) {
+            orientation = Portrait;
+        } else if ([orientationMethodCallArg isEqualToString:@"LANDSCAPE"]) {
+            orientation = Landscape;
+        }
+    }
+    
+    return orientation;
+}
+
 - (void)_handleStopRecordingVideo:(FlutterMethodCall*)call result:(FlutterResult)result {
+    [_camera setResult:result];
     [_camera stopRecordingVideo];
 }
 
@@ -211,17 +237,20 @@ FlutterEventSink imageStreamEventSink;
     NSString *sensorName = call.arguments[@"sensor"];
     // TODO: Return a list of all available cameras to front & then choice in a list the device ID wanted
     CameraSensor sensor = ([sensorName isEqualToString:@"FRONT"]) ? Front : Back;
-
+    
+    [_camera setResult:result];
     [_camera setSensor:sensor];
 }
 
 - (void)_handleSetCaptureMode:(FlutterMethodCall*)call result:(FlutterResult)result {
     NSString *captureModeName = call.arguments[@"captureMode"];
     CaptureModes captureMode = ([captureModeName isEqualToString:@"PHOTO"]) ? Photo : Video;
+    [_camera setResult:result];
     [_camera setCaptureMode:captureMode];
 }
 
 - (void)_handleAutoFocus:(FlutterMethodCall*)call result:(FlutterResult)result {
+    [_camera setResult:result];
     [_camera instantFocus];
 }
 
@@ -314,9 +343,11 @@ FlutterEventSink imageStreamEventSink;
 
 - (void)_handleRefresh:(FlutterMethodCall*)call result:(FlutterResult)result {
     [_camera refresh];
+    result(nil);
 }
 
 - (void)_handleSetup:(FlutterMethodCall*)call result:(FlutterResult)result  {
+    
     NSString *sensorName = call.arguments[@"sensor"];
     NSString *captureModeName = call.arguments[@"captureMode"];
     BOOL streamImages = call.arguments[@"streamImages"];
@@ -381,6 +412,29 @@ FlutterEventSink imageStreamEventSink;
 
 - (void)_handleGetTextures:(FlutterMethodCall*)call result:(FlutterResult)result {
     result(@(_textureId));
+}
+
+- (void)_handleSetDebugLoggingEnabled:(FlutterMethodCall *)call result:(FlutterResult)result {
+    BOOL enabled = [call.arguments[@"enabled"] boolValue];
+    debugLoggingEnabled = enabled;
+    result(nil);
+}
+
+- (FlutterResult)wrappedResult:(FlutterResult)result method:(NSString *)method {
+    if (!debugLoggingEnabled) {
+        return result;
+    }
+
+    CFTimeInterval startTime = CACurrentMediaTime();
+    NSLog(@"Result block set: %@ for method: %@", result, method);
+
+    FlutterResult wrapped = ^void(id _Nullable theResult) {
+        CFTimeInterval elapsedTime = CACurrentMediaTime() - startTime;
+        NSLog(@"Result block called: %@ for method: %@ elapsed time: %f", result, method, elapsedTime);
+        result(theResult);
+    };
+
+    return wrapped;
 }
 
 @end

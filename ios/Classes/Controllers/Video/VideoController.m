@@ -51,14 +51,20 @@ FourCharCode const videoFormat = kCVPixelFormatType_32BGRA;
         if (_videoWriter.status != AVAssetWriterStatusUnknown) {
             [_videoWriter finishWritingWithCompletionHandler:^{
                 if (self->_videoWriter.status == AVAssetWriterStatusCompleted) {
-                    self->_result(nil);
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        self->_result(nil);
+                    });
                 } else {
-                    self->_result([FlutterError errorWithCode:@"VIDEO_ERROR" message:@"impossible to completely write video" details:@""]);
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        self->_result([FlutterError errorWithCode:@"VIDEO_ERROR" message:@"impossible to completely write video" details:@""]);
+                    });
                 }
             }];
         }
     } else {
-        _result([FlutterError errorWithCode:@"VIDEO_ERROR" message:@"video is not recording" details:@""]);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self->_result([FlutterError errorWithCode:@"VIDEO_ERROR" message:@"video is not recording" details:@""]);
+        });
     }
 }
 

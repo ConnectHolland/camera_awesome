@@ -65,7 +65,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 - (void)refresh;
 - (void)start;
 - (void)stop;
-- (void)takePictureAtPath:(NSString *)path;
+- (void)takePictureAtPath:(NSString *)path forceOrientation:(Orientation)orientation;
 - (void)recordVideoAtPath:(NSString *)path;
 - (void)stopRecordingVideo;
 - (void)instantFocus;
@@ -75,7 +75,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 - (void)setZoom:(float)value;
 - (CGFloat)getMaxZoom;
 - (CGSize)getEffectivPreviewSize;
-- (void)setUpCaptureSessionForAudio;
+- (nullable FlutterError *)setUpCaptureSessionForAudio;
 
 @end
 
