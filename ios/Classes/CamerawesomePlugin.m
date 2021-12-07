@@ -189,7 +189,7 @@ FlutterEventSink imageStreamEventSink;
         return;
     }
     
-    [_camera takePictureAtPath:path];
+    [_camera takePictureAtPath:path forceOrientation:[self _getOrientationArgument:call]];
 }
 
 - (void)_handleRecordVideo:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -201,6 +201,21 @@ FlutterEventSink imageStreamEventSink;
     }
     
     [_camera recordVideoAtPath:path];
+}
+
+- (Orientation)_getOrientationArgument:(FlutterMethodCall*)call {
+    Orientation orientation = Undefined;
+    NSString *orientationMethodCallArg = call.arguments[@"orientation"];
+    
+    if(orientationMethodCallArg != nil) {
+        if ([orientationMethodCallArg isEqualToString:@"PORTRAIT"]) {
+            orientation = Portrait;
+        } else if ([orientationMethodCallArg isEqualToString:@"LANDSCAPE"]) {
+            orientation = Landscape;
+        }
+    }
+    
+    return orientation;
 }
 
 - (void)_handleStopRecordingVideo:(FlutterMethodCall*)call result:(FlutterResult)result {
