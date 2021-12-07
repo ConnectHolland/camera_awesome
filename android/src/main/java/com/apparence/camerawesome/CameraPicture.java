@@ -16,6 +16,7 @@ import android.media.MediaCodec;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
@@ -145,10 +146,12 @@ public class CameraPicture implements CameraSession.OnCaptureSession, CameraSett
         recordVideoRequestBuilder.addTarget(cameraPreview.getPreviewSurface());
         recordVideoRequestBuilder.addTarget(recorderSurface);
 
+        // Sets FPS for all targets
+        recordVideoRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<>(RECORDER_VIDEO_FRAME_RATE, RECORDER_VIDEO_FRAME_RATE));
+
         // Start recording repeating requests, which will stop the ongoing preview
         // repeating requests without having to explicitly call `session.stopRepeating`
         mCameraSession.getCaptureSession().setRepeatingRequest(recordVideoRequestBuilder.build(), null, null);
-
 
         if (recorder != null) {
             recorder.release();

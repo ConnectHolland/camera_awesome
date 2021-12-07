@@ -200,7 +200,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     final String filePath = widget.randomPhotoName
         ? '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg'
         : '${testDir.path}/photo_test.jpg';
-    await _pictureController.takePicture(filePath);
+    await _pictureController.takePicture(filePath, Orientation.portrait);
     // lets just make our phone vibrate
     HapticFeedback.mediumImpact();
     _lastPhotoPath = filePath;
@@ -251,7 +251,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       final String filePath = widget.randomPhotoName
           ? '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.mp4'
           : '${testDir.path}/video_test.mp4';
-      await _videoController.recordVideo(filePath);
+      await _videoController.recordVideo(filePath, Orientation.portrait);
       _isRecordingVideo = true;
       _lastVideoPath = filePath;
       setState(() {});
