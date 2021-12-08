@@ -230,24 +230,14 @@ class CameraAwesomeState extends State<CameraAwesome> with WidgetsBindingObserve
     _initPreviewSize();
     _initVideoSize();
     camerasAvailableSizes = await CamerawesomePlugin.getSizes();
-    if (widget.selectPreviewSize != null) {
-      widget.previewSize.value = widget.selectPreviewSize!(camerasAvailableSizes);
-    } else {
-      widget.previewSize.value = camerasAvailableSizes[0];
-    }
 
-    if (widget.selectVideoSize != null) {
-      widget.videoSize.value = widget.selectVideoSize!(camerasAvailableSizes);
-    } else {
-      widget.videoSize.value = camerasAvailableSizes[0];
-    }
+    widget.previewSize.value =
+        widget.selectPreviewSize?.call(camerasAvailableSizes) ?? camerasAvailableSizes[0];
+    widget.videoSize.value =
+        widget.selectVideoSize?.call(camerasAvailableSizes) ?? camerasAvailableSizes[0];
+    widget.photoSize.value =
+        widget.selectPhotoSize?.call(camerasAvailableSizes) ?? camerasAvailableSizes[0];
 
-    if (widget.selectPhotoSize != null) {
-      widget.photoSize.value = widget.selectPhotoSize!(camerasAvailableSizes);
-    } else {
-      print(camerasAvailableSizes[0]);
-      widget.photoSize.value = camerasAvailableSizes[0];
-    }
     // start camera --
     try {
       started = await CamerawesomePlugin.start();
