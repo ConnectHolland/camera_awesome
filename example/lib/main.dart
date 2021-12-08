@@ -348,12 +348,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       child: Center(
         child: CameraAwesome(
           onPermissionsResult: _onPermissionsResult,
-          selectDefaultSize: (availableSizes) {
+          selectPreviewSize: (availableSizes) {
             this._availableSizes = availableSizes;
             return availableSizes[0];
           },
           captureMode: _captureMode,
-          photoSize: _photoSize,
+          previewSize: _photoSize,
           sensor: _sensor,
           enableAudio: _enableAudio,
           switchFlashMode: _switchFlash,
@@ -394,12 +394,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             width: MediaQuery.of(context).size.width,
             child: CameraAwesome(
               onPermissionsResult: _onPermissionsResult,
-              selectDefaultSize: (availableSizes) {
+              selectPreviewSize: (availableSizes) {
                 this._availableSizes = availableSizes;
                 return availableSizes[0];
               },
               captureMode: _captureMode,
-              photoSize: _photoSize,
+              previewSize: _photoSize,
               sensor: _sensor,
               fitted: true,
               switchFlashMode: _switchFlash,

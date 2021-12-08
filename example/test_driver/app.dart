@@ -42,7 +42,7 @@ void main() {
     // take photo
     await tester.tap(takePhotoBtnFinder);
     await tester.pump(Duration(seconds: 2));
-    expect(cameraPreview.photoSize.value, isNotNull);
+    expect(cameraPreview.previewSize.value, isNotNull);
     // checks photo exists + size
     final Directory extDir = await getTemporaryDirectory();
     var testDir = Directory('${extDir.path}/test');
@@ -50,8 +50,8 @@ void main() {
     expect(await File(filePath).exists(), isTrue);
     var file = File(filePath);
     var img = imgUtils.decodeImage(file.readAsBytesSync());
-    expect(img.width, equals(cameraPreview.photoSize.value.width));
-    expect(img.height, equals(cameraPreview.photoSize.value.height));
+    expect(img.width, equals(cameraPreview.previewSize.value.width));
+    expect(img.height, equals(cameraPreview.previewSize.value.height));
     // delete photo
     file.deleteSync();
   });
@@ -105,8 +105,8 @@ void main() {
     expect(await File(filePath).exists(), isTrue);
     var file = File(filePath);
     var img = imgUtils.decodeImage(file.readAsBytesSync());
-    expect(img.width, equals(cameraPreview.photoSize.value.width));
-    expect(img.height, equals(cameraPreview.photoSize.value.height));
+    expect(img.width, equals(cameraPreview.previewSize.value.width));
+    expect(img.height, equals(cameraPreview.previewSize.value.height));
     // delete photo
     file.deleteSync();
   });
@@ -132,8 +132,8 @@ void main() {
                   right: 0,
                   child: Center(
                     child: CameraAwesome(
-                      selectDefaultSize: (availableSizes) => availableSizes[0],
-                      photoSize: photoSize,
+                      selectPreviewSize: (availableSizes) => availableSizes[0],
+                      previewSize: photoSize,
                       sensor: sensor,
                       captureMode: captureMode,
                       imagesStreamBuilder: (stream) async {

@@ -86,11 +86,11 @@ class CameraView extends StatelessWidget {
       testMode: false,
       captureMode: _captureMode,
       onPermissionsResult: (result) {},
-      selectDefaultSize: (availableSizes) => availableSizes.first,
+      selectPreviewSize: (availableSizes) => availableSizes.first,
       onCameraStarted: () {},
       onOrientationChanged: (newOrientation) {},
       sensor: _sensor,
-      photoSize: _photoSize,
+      previewSize: _photoSize,
       switchFlashMode: _switchFlash,
       fitted: fit,
     );
