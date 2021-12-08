@@ -416,12 +416,12 @@ FlutterEventSink imageStreamEventSink;
 
 - (void)_handleSetDebugLoggingEnabled:(FlutterMethodCall *)call result:(FlutterResult)result {
     BOOL enabled = [call.arguments[@"enabled"] boolValue];
-    debugLoggingEnabled = enabled;
+    _debugLoggingEnabled = enabled;
     result(nil);
 }
 
 - (FlutterResult)wrappedResult:(FlutterResult)result method:(NSString *)method {
-    if (!debugLoggingEnabled) {
+    if (!_debugLoggingEnabled) {
         return result;
     }
 
