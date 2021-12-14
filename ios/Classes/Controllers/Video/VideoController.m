@@ -37,8 +37,10 @@ FourCharCode const videoFormat = kCVPixelFormatType_32BGRA;
     videoWriterCallback();
     
     _isRecording = YES;
-    _videoTimeOffset = CMTimeMake(0, 1);
-    _audioTimeOffset = CMTimeMake(0, 1);
+    // _videoTimeOffset = CMTimeMake(0, 1);
+    // _audioTimeOffset = CMTimeMake(0, 1);
+    _videoTimeOffset = CMTimeMakeWithSeconds(3, 10);
+    _audioTimeOffset = CMTimeMakeWithSeconds(3, 10);
     _videoIsDisconnected = NO;
     _audioIsDisconnected = NO;
     _result(nil);
