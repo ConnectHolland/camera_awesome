@@ -567,6 +567,7 @@ public class CamerawesomePlugin implements FlutterPlugin, MethodCallHandler, Act
         @SuppressWarnings("ConstantConditions")
         boolean enableAudio = call.argument("enableAudio");
         mCameraPicture.setRecordAudioEnabled(enableAudio);
+        result.success(null);
     }
 
     private void _handleRefresh(final MethodCall call, final Result result) {
