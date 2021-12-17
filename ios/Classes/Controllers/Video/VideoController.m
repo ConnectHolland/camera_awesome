@@ -37,8 +37,6 @@ FourCharCode const videoFormat = kCVPixelFormatType_32BGRA;
     videoWriterCallback();
     
     _isRecording = YES;
-    // _videoTimeOffset = CMTimeMake(0, 1);
-    // _audioTimeOffset = CMTimeMake(0, 1);
     _videoTimeOffset = CMTimeMakeWithSeconds(1, 10);
     _audioTimeOffset = CMTimeMakeWithSeconds(1, 10);
     _videoIsDisconnected = NO;
@@ -62,6 +60,11 @@ FourCharCode const videoFormat = kCVPixelFormatType_32BGRA;
                     });
                 }
             }];
+        }
+        else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self->_result([FlutterError errorWithCode:@"VIDEO_ERROR" message:@"impossible to completely write video" details:@""]);
+            });
         }
     } else {
         dispatch_async(dispatch_get_main_queue(), ^{
