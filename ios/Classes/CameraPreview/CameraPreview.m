@@ -91,8 +91,8 @@
     [_captureConnection setVideoMirrored:(_cameraSensor == Back)];
     [_captureConnection setVideoOrientation:AVCaptureVideoOrientationPortrait];
     
-    [self setCameraPreviewPresset:CGSizeMake(0, 0)];
-    [self setCameraVideoPresset:CGSizeMake(0, 0)];
+    [self setCameraPreviewPresset:_currentPreviewSize];
+    [self setCameraVideoPresset:_currentPreviewSize];
 }
 
 - (void)dealloc {
